@@ -1,129 +1,134 @@
 import { db } from "../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { spent } from "@/types/pg";
 
-export const addSpent = async (pgId: string, userId: string, totalMoney: number) => {
+// Add Expense
+export const addSpent = async (pgId: string, userId: string, money: number) => {
   try {
     const pgRef = doc(db, "pgs", pgId);
-    
-    // Get current PG data
     const pgSnap = await getDoc(pgRef);
-    
+
     if (!pgSnap.exists()) {
-      console.error("PG document not found!");
+      console.error("❌ PG document not found!");
       return;
     }
 
-    const currentData = pgSnap.data();
-    let spentSheet = currentData?.currentMonth?.spentSheet || [];
-    let totalSpent = currentData?.currentMonth?.totalSpent || 0;
+    const pg = pgSnap.data();
+    const spentSheet: spent[] = pg?.currMonth?.spentSheet ?? [];
+    const totalSpent = pg?.currMonth?.totalSpent ?? 0;
 
-    // Find if user already exists in spentSheet
-    const userIndex = spentSheet.findIndex((entry: any) => entry.userId === userId);
+    const userIndex = spentSheet.findIndex((entry) => entry.userId === userId);
 
     if (userIndex !== -1) {
-      // User exists, update details array & totalMoney
-      const updatedUser = { 
-        ...spentSheet[userIndex], 
-        totalMoney: spentSheet[userIndex].totalMoney + totalMoney, 
-        details: [
-          ...spentSheet[userIndex].details,
-          { date: new Date().toISOString(), totalMoney }
-        ]
-      };
-
-      // Create a new array with updated user
-      spentSheet = [
-        ...spentSheet.slice(0, userIndex),
-        updatedUser,
-        ...spentSheet.slice(userIndex + 1)
-      ];
+      // Update existing user
+      spentSheet[userIndex].totalMoney = (spentSheet[userIndex].totalMoney ?? 0) + money;
+      spentSheet[userIndex].details.push({
+        date: new Date().toISOString(),
+        money
+      });
     } else {
-      // User does not exist, add a new entry
-      spentSheet.push({
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+      const userData = userSnap.data();
+      // Add new user entry
+      spentSheet.push({ 
         userId,
-        totalMoney,
-        details: [{
-          date: new Date().toISOString(),
-          totalMoney,
-        }]
+        userName: userData?.name ?? "not Found",
+        totalMoney: money,
+        details: [{ date: new Date().toISOString(), money}],
       });
     }
 
     // Update Firestore
     await updateDoc(pgRef, {
-      "currentMonth.spentSheet": spentSheet,
-      "currentMonth.totalSpent": totalSpent + totalMoney,
+      "currMonth.spentSheet": spentSheet,
+      "currMonth.totalSpent": totalSpent + money,
     });
 
-    console.log("Expense added successfully!");
+    console.log("✅ Expense added successfully!");
   } catch (error) {
-    console.error("Error adding expense:", error);
+    console.error("❌ Error adding expense:", error);
   }
 };
 
-export const deleteSpentDetails = async (pgId: string, userId: string, date: string) => {
+export const getSpentSheet = async (pgId: string, currMonth: boolean) => {
   try {
     const pgRef = doc(db, "pgs", pgId);
-    
-    // Get current PG data
     const pgSnap = await getDoc(pgRef);
-    
+
     if (!pgSnap.exists()) {
-      console.error("PG document not found!");
+      console.error("❌ PG document not found!");
+      return null;
+    }
+    let spentSheet: spent[];
+
+    if(currMonth){
+      spentSheet= pgSnap.data()?.currMonth?.spentSheet ?? [];
+    }else{
+      spentSheet= pgSnap.data()?.PrevMonth?.spentSheet ?? [];
+    }
+
+    return spentSheet;
+  } catch (error) {
+    console.error("❌ Error fetching spent sheet:", error);
+    return null;
+  }
+}
+
+// Delete Expense
+export const deleteSpentDetails = async (
+  pgId: string,
+  userId: string,
+  date: string
+): Promise<boolean> => {
+  try {
+    const pgRef = doc(db, "pgs", pgId);
+    const pgSnap = await getDoc(pgRef);
+
+    if (!pgSnap.exists()) {
+      console.error("❌ PG document not found!");
       return false;
     }
 
-    const currentData = pgSnap.data();
-    const spentSheet = currentData?.currentMonth?.spentSheet || [];
-    
-    // Find the user in spentSheet
-    const userIndex = spentSheet.findIndex((entry: any) => entry.userId === userId);
-    
+    const pg = pgSnap.data();
+    const spentSheet: spent[] = pg?.currMonth?.spentSheet ?? [];
+    const totalSpent = pg?.currMonth?.totalSpent ?? 0;
+
+    const userIndex = spentSheet.findIndex((entry) => entry.userId === userId);
+
     if (userIndex === -1) {
-      console.error("User not found in spent sheet!");
+      console.error("❌ User not found in spent sheet!");
       return false;
     }
 
     const user = spentSheet[userIndex];
-    
-    // Find the detail to delete
-    const detailIndex = user.details.findIndex((detail: any) => detail.date === date);
-    
+    const detailIndex = user.details.findIndex((detail) => detail.date === date);
+
     if (detailIndex === -1) {
-      console.error("Expense detail not found!");
+      console.error("❌ Expense detail not found!");
       return false;
     }
 
-    // Calculate amount to subtract from total
-    const amountToSubtract = user.details[detailIndex].totalMoney;
+    const amountToSubtract = user.details[detailIndex].money;
+    user.details.splice(detailIndex, 1);
+    user.totalMoney -= amountToSubtract;
 
-    // Remove the detail
-    const updatedDetails = user.details.filter((detail: any) => detail.date !== date);
-    
-    // Update user's total money
-    const updatedUser = {
-      ...user,
-      details: updatedDetails,
-      totalMoney: user.totalMoney - amountToSubtract
-    };
-
-    // Update the spentSheet array
-    const updatedSpentSheet = [
-      ...spentSheet.slice(0, userIndex),
-      updatedUser,
-      ...spentSheet.slice(userIndex + 1)
-    ];
+    if (user.details.length === 0) {
+      spentSheet.splice(userIndex, 1);
+    } else {
+      spentSheet[userIndex] = user;
+    }
 
     // Update Firestore
     await updateDoc(pgRef, {
-      "currentMonth.spentSheet": updatedSpentSheet,
-      "currentMonth.totalSpent": currentData.currentMonth.totalSpent - amountToSubtract
+      "currMonth.spentSheet": spentSheet,
+      "currMonth.totalSpent": totalSpent - amountToSubtract,
     });
 
-    console.log("Expense detail deleted successfully!");
+    console.log("✅ Expense detail deleted successfully!");
     return true;
   } catch (error) {
-    console.error("Error deleting expense detail:", error);
+    console.error("❌ Error deleting expense detail:", error);
     return false;
   }
 };

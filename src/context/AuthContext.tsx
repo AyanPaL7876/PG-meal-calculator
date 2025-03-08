@@ -4,20 +4,11 @@ import { auth } from "../firebase"; // Firebase auth instance
 import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { db } from "../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { StoreUser } from "@/types";
 
-// Define user type based on Firestore schema
-interface FirestoreUser {
-  uid: string;
-  name: string;
-  email: string;
-  photoURL?: string;
-  mealStatus: boolean;
-  role: "user" | "admin";
-  pgId?: string;
-}
 
 interface AuthContextType {
-  user: FirestoreUser | null;
+  user: StoreUser | null;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -25,7 +16,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<FirestoreUser | null>(null);
+  const [user, setUser] = useState<StoreUser | null>(null);
 
   // 📌 Handle Google Login & Store User in Firestore
   const loginWithGoogle = async () => {
@@ -41,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!userSnap.exists()) {
         // If user does not exist, store in Firestore
-        const newUser: FirestoreUser = {
+        const newUser: StoreUser = {
           uid: googleUser.uid,
           name: googleUser.displayName || "Unknown User",
           email: googleUser.email || "",
@@ -55,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(newUser);
       } else {
         // If user exists, fetch and set data
-        setUser(userSnap.data() as FirestoreUser);
+        setUser(userSnap.data() as StoreUser);
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -75,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userRef = doc(db, "users", firebaseUser.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
-          setUser(userSnap.data() as FirestoreUser);
+          setUser(userSnap.data() as StoreUser);
         }
       } else {
         setUser(null);

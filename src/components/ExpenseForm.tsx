@@ -9,11 +9,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import { Plus } from "lucide-react"; // Make sure to install lucide-react if not already
+import { addExpense } from "@/services/expenseService";
+import { Response } from "@/types/pg";
 
 interface ExpenseFormProps {
   isOpen: boolean;
@@ -38,29 +38,17 @@ const ExpenseForm = ({ isOpen, onClose }: ExpenseFormProps) => {
       return;
     }
 
-    const expenseData = {
-      pgId: user.pgId,
-      email: user.email,
-      details,
-      totalMoney: parseFloat(totalMoney),
-    };
 
     try {
-      const res = await fetch("/api/create/Expense", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(expenseData),
-      });
+      const res: Response = await addExpense(user.pgId, user.uid, details, parseFloat(totalMoney));
 
-      const data = await res.json();
-
-      if (data.success) {
+      if (res?.success) {
         toast.success("Expense added successfully!");
         setDetails("");
         setTotalMoney("");
         onClose();
       } else {
-        toast.error(data.message);
+        toast.error(res?.message);
       }
     } catch (error) {
       console.error("Error submitting expense:", error);

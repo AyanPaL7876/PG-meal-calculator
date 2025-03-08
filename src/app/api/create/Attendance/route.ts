@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { markAttendance } from "@/services/attendanceService";
+import { markAttendance } from "@/services/mealService";
 
 export async function POST(req: Request) {
   try {
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     }
 
     let successCount = 0;
-    let errors: string[] = [];
+    const errors: string[] = [];
 
     for (const userDoc of userSnapshots.docs) {
       const userData = userDoc.data();

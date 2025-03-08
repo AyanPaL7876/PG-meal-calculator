@@ -1,246 +1,134 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "@/firebase";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import LoadingScreen from "@/components/Loading";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  mealStatus: boolean;
-  pgId: string;
-  role: string;
-}
-
-interface PG {
-  id: string;
-  pgName: string;
-}
-
-interface Response {
-  status: number;
-  message: string;
-  errors: string;
-}
-
+import { StoreUser } from "@/types/User";
+import { toast } from "react-hot-toast";
+import { getPGusers } from "@/services/pgService";
+import { markMeal } from "@/services/mealService";
 
 const Attendance = () => {
   const { user } = useAuth();
-  const [pg, setPg] = useState<PG | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
-  const [session, setSession] = useState<string>("Breakfast");
+  const [users, setUsers] = useState<StoreUser[]>([]);
+  const [session, setSession] = useState<string>("Select session");
+  const [date, setDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [mealmarking, setMealMarking] = useState(false);
+
 
   useEffect(() => {
-    const fetchPGAndUsers = async () => {
-      if (!user?.pgId) return;
-  
+    if (!user?.pgId) return;
+
+    const fetchUsers = async () => {
       try {
-        console.log("Fetching PG for:", user.pgId);
-  
-        // Fetch PG
-        const pgRef = doc(db, "pgs", user.pgId);
-        const pgSnap = await getDoc(pgRef);
-  
-        if (!pgSnap.exists()) {
-          console.error("PG not found or insufficient permissions.");
-          return;
+        const usersData = await getPGusers(user?.pgId as string);
+        console.log("usersData", usersData);
+
+        if (usersData && usersData.length > 0) {
+          setUsers(usersData);
+        } else {
+          toast.error("Users Not Found.");
         }
-  
-        const pgData = { id: pgSnap.id, ...pgSnap.data() } as PG;
-        console.log("PG Data:", pgData);
-        setPg(pgData);
-  
-        // Fetch Users
-        console.log("Fetching Users for PG:", user.pgId);
-        const usersRef = collection(db, "users");
-        console.log("usersRef", usersRef);
-        const q = query(usersRef, where("pgId", "==", user.pgId));
-        console.log("Query:", q);
-        const snapshot = await getDocs(q);
-        console.log("Snapshot:", snapshot);
-  
-        if (snapshot.empty) {
-          console.warn("No users found or insufficient permissions.");
-        }
-  
-        const userList = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as User[];
-  
-        console.log("Fetched Users:", userList);
-        setUsers(userList);
-  
-        // Check Admin Role
-        const loggedInUser = userList.find((u) => u.id === user.uid);
-        setIsAdmin(loggedInUser?.role === "admin");
-  
       } catch (error) {
-        console.error("Error fetching PG or users:", error);
-      } finally {
-        setLoading(false);
+        console.error("Error fetching users:", error);
+        toast.error("Failed to load users.");
       }
     };
-  
-    fetchPGAndUsers();
-  }, [user?.pgId]);
-  
+
+    fetchUsers();
+    setIsAdmin(user?.role === "admin");
+    setLoading(false);
+  }, [user]);
 
   const toggleAttendance = (id: string) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, mealStatus: !u.mealStatus } : u))
-    );
+    setUsers((prev) => prev.map((u) => (u.uid === id ? { ...u, mealStatus: !u.mealStatus } : u)));
   };
 
   const submitAttendance = async () => {
     if (!isAdmin) return;
-
-    const selectedUsers = users.filter((u) => u.mealStatus);
-    if (selectedUsers.length === 0) {
-      alert("No users selected");
+    if (session === "Select session") {
+      toast.error("Please select a session.");
       return;
     }
+    setMealMarking(true);
 
-    const emails = selectedUsers.map((u) => u.email);
-    console.log("Selected Users:", emails);
-    console.log("Session:", session);
+    const selectedUsers = users.filter((u) => u.mealStatus);
+    if (selectedUsers.length === 0) return alert("No users selected");
 
-    const response = await fetch("/api/create/Attendance", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ emails, session, pgId: user?.pgId }),
-    });
+    for(const user of selectedUsers){
+      const res = await markMeal(user.pgId as string, user.uid, date, session);
+      if(res.success){
+        toast.success(`${user.name}'s Meal marked successfully!`);
+      }else{
+        alert(`${user.name}'s Failed to mark meal`);
+      }
+    }
+    setMealMarking(false);
+}
 
-    const responseData: Response = await response.json();
-    console.log("Attendance Response:", responseData.message);
-    console.log("Attendance Errors:", responseData.errors);
-    alert("Attendance submitted!");
-  };
-
-  if (loading) {
-    return <LoadingScreen message="Loading PG and users data..." />;
-  }
+  if (loading) return <LoadingScreen message="Loading data..." />;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 py-8 px-4">
-      <Card className="max-w-4xl mx-auto shadow-xl border border-gray-700/50 bg-gray-800/50 backdrop-blur-sm">
-        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 p-6 rounded-t-lg border-b border-gray-700/50">
-          <h1 className="text-3xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-            Attendance Sheet
-          </h1>
-          
-          {pg ? (
-            <h2 className="text-xl font-semibold mt-2 text-center text-gray-400">
-              PG Name: <span className="text-blue-400">{pg.pgName}</span>
-            </h2>
-          ) : (
-            <p className="text-center animate-pulse">Loading PG...</p>
-          )}
-        </div>
-
-        <div className="p-6 space-y-6">
-          {isAdmin && (
-            <div className="flex items-center gap-3 bg-gray-800/50 p-4 rounded-lg border border-gray-700/50">
-              <label className="font-semibold text-gray-300">Select Session:</label>
-              <Select value={session} onValueChange={setSession}>
-                <SelectTrigger className="border-gray-600 bg-gray-700/50 text-gray-200 hover:bg-gray-700 transition-colors">
-                  <SelectValue placeholder="Select a session" />
+    <div className="p-8 min-h-screen bg-gray-900 max-w-6xl mx-auto">
+      <Card className="bg-slate-700/10 text-white mt-20">
+        <CardHeader>
+          <CardTitle className="text-center text-3xl font-bold text-white">Attendance Sheet</CardTitle>
+        </CardHeader>
+        <CardContent>
+            <div className="w-80 flex flex-col md:flex-row justify-evenly items-center gap-5 mb-6">
+              <Select onValueChange={setSession} defaultValue={session}>
+                <SelectTrigger>
+                  <SelectValue>{session}</SelectValue>
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="breakfast" className="text-gray-200 focus:bg-gray-700">Breakfast</SelectItem>
-                  <SelectItem value="lunch" className="text-gray-200 focus:bg-gray-700">Lunch</SelectItem>
-                  <SelectItem value="dinner" className="text-gray-200 focus:bg-gray-700">Dinner</SelectItem>
+                <SelectContent>
+                  <SelectItem value="Breakfast">Breakfast</SelectItem>
+                  <SelectItem value="Lunch">Lunch</SelectItem>
+                  <SelectItem value="Dinner">Dinner</SelectItem>
                 </SelectContent>
               </Select>
+              <input
+                type="date"
+                className="w-52 p-1 bg-slate-700 text-white rounded text-sm"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
             </div>
-          )}
 
-          <div className="rounded-lg border border-gray-700/50 overflow-hidden">
-            <Table className="w-full text-sm">
-              <TableHeader>
-                <TableRow className="bg-gray-800/80 border-b border-gray-700/50">
-                  <TableHead className="text-left p-4 text-gray-300 font-semibold">Name</TableHead>
-                  <TableHead className="text-left p-4 hidden sm:table-cell text-gray-300 font-semibold">Email</TableHead>
-                  {isAdmin && <TableHead className="text-center p-4 text-gray-300 font-semibold">Meal Status</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center p-8 text-gray-400">
-                      No users found in this PG.
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Total meal</TableHead>
+                <TableHead>Meal Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users.map((u) => (
+                <TableRow key={u.uid}>
+                  <TableCell>{u.name}</TableCell>
+                  <TableCell>{u.mealCount}</TableCell>
+                    <TableCell>
+                      <Button className={`bg-${u.mealStatus ? "green-500" : "red-500"}`} onClick={() => toggleAttendance(u.uid)}>
+                        {u.mealStatus ? "On" : "Off"}
+                      </Button>
                     </TableCell>
-                  </TableRow>
-                ) : (
-                  users.map((u) => (
-                    <TableRow 
-                      key={u.id} 
-                      className="border-b border-gray-700/50 hover:bg-gray-700/20 transition-colors"
-                    >
-                      <TableCell className="p-4 text-gray-200">{u.name}</TableCell>
-                      <TableCell className="p-4 hidden sm:table-cell text-gray-400">{u.email}</TableCell>
-                      {isAdmin && (
-                        <TableCell className="p-4 text-center">
-                          <Button
-                            variant={u.mealStatus ? "default" : "secondary"}
-                            className={`transition-all duration-200 px-6 ${
-                              u.mealStatus 
-                                ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700" 
-                                : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
-                            }`}
-                            onClick={() => toggleAttendance(u.id)}
-                          >
-                            {u.mealStatus ? "On" : "Off"}
-                          </Button>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
-          {isAdmin && (
-            <div className="flex justify-center pt-4">
-              <Button 
-                className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-200"
-                onClick={submitAttendance}
-              >
-                Submit Attendance
+            <div className="text-center mt-6">
+              <Button className="bg-blue-500 hover:bg-blue-700" onClick={submitAttendance}>
+                {mealmarking ? "Marking Meals..." : "Submit Attendance"}
               </Button>
             </div>
-          )}
-        </div>
+        </CardContent>
       </Card>
     </div>
   );

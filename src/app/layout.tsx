@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import { ThemeProvider } from "next-themes";
-import Footer from "@/components/Footer";
+// import Footer from "@/components/Footer";
 import { Toaster } from 'react-hot-toast';
 
 // Optional: Define fonts (if needed)
@@ -33,8 +33,8 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>{children}
-            <Footer/>
             <Toaster />
+            {/* <Footer/> */}
           </AuthProvider>
         </ThemeProvider>
       </body>

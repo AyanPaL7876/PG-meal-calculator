@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "@/context/AuthContext";
 import { useEffect } from "react";
+
 export default function SignIn() {
   const router = useRouter();
   const { user } = useAuth();
@@ -25,16 +26,15 @@ export default function SignIn() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-900">
-      <div className="bg-gray-800 shadow-xl rounded-lg p-8 w-96 text-center">
-        <h1 className="text-3xl font-bold text-gray-200">Welcome Back!</h1>
-        <p className="text-gray-400 mt-2">Sign in to continue</p>
-
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+      <div className="bg-gray-800 shadow-2xl rounded-xl p-10 w-96 text-center transform hover:scale-105 transition-all duration-500">
+        <h1 className="text-4xl font-extrabold text-blue-400 mb-4">Welcome Back!</h1>
+        <p className="text-gray-400 mb-6">Sign in to continue and manage your meals with ease</p>
         <button
           onClick={handleGoogleSignIn}
-          className="mt-6 flex items-center justify-center w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-md text-gray-300 hover:bg-gray-600 hover:scale-105 transition-all duration-300"
+          className="flex items-center justify-center w-full px-5 py-3 bg-blue-600 border border-blue-500 rounded-lg shadow-md text-white hover:bg-blue-500 hover:scale-105 transition-all duration-300"
         >
-          <FcGoogle className="text-2xl mr-3" />
+          <FcGoogle className="text-3xl mr-3" />
           Continue with Google
         </button>
       </div>

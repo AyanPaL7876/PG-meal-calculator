@@ -1,8 +1,8 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
 import {
   Dialog,
@@ -18,32 +18,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getPGusers } from "@/services/pgService";
+import { getPGusers, ChangeAdmin } from "@/services/pgService";
 import { StoreUser } from "@/types";
 
-interface SpentFormProps {
+interface ChangeAdminProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const SpentForm = ({ isOpen, onClose }: SpentFormProps) => {
+const ChangeAdminPopup = ({ isOpen, onClose }: ChangeAdminProps) => {
   const { user } = useAuth();
-  const [totalMoney, setTotalMoney] = useState("");
   const [users, setUsers] = useState<StoreUser[]>([]);
-  const [selectedId, setSelectedId] = useState("");
+  const [newAdminId, setNewAdminId] = useState("");
 
   useEffect(() => {
     if (!user?.pgId) return;
 
     const fetchUsers = async () => {
       try {
-        const usersData = await getPGusers(user?.pgId);
-        console.log("usersData", usersData);
-
+        const usersData = await getPGusers(user.pgId);
         if (usersData && usersData.length > 0) {
           setUsers(usersData);
         } else {
-          toast.error("Users Not Found.");
+          toast.error("Users not found.");
         }
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -54,50 +51,21 @@ const SpentForm = ({ isOpen, onClose }: SpentFormProps) => {
     fetchUsers();
   }, [user?.pgId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleChangeAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user?.pgId) {
-      toast.error("PG ID not found. Please log in again.");
+    if (!newAdminId) {
+      toast.error("Please select a new admin.");
       return;
     }
-
-    if (!totalMoney.trim() || Number(totalMoney) <= 0) {
-      toast.error("Please enter a valid amount.");
-      return;
-    }
-
-    if (!selectedId) {
-      toast.error("Please select a user.");
-      return;
-    }
-
-    const spentData = {
-      pgId: user.pgId,
-      userId: selectedId,
-      totalMoney: parseFloat(totalMoney),
-    };
 
     try {
-      const res = await fetch("/api/create/Spent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(spentData),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        toast.success("Spent money added successfully!");
-        setTotalMoney("");
-        setSelectedId("");
-        onClose();
-      } else {
-        toast.error(data.message);
-      }
+      await ChangeAdmin(user.pgId, user.uid, newAdminId);
+      toast.success("Admin changed successfully!");
+      onClose();
     } catch (error) {
-      console.error("Error submitting spent money:", error);
-      toast.error("Something went wrong. Please try again.");
+      console.error("Error changing admin:", error);
+      toast.error("Failed to change admin.");
     }
   };
 
@@ -106,19 +74,16 @@ const SpentForm = ({ isOpen, onClose }: SpentFormProps) => {
       <DialogContent className="sm:max-w-md bg-gray-900 border border-gray-800 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-100">
-            Add Spent Money
+            Change Admin
           </DialogTitle>
           <DialogDescription className="text-sm text-gray-400">
-            Fill out the form below to add a spent money record.
+            Select a new admin to replace the current admin.
           </DialogDescription>
         </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+        <form onSubmit={handleChangeAdmin} className="space-y-4 mt-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-300">
-              Select User
-            </label>
-            <Select onValueChange={setSelectedId} value={selectedId}>
+            <label className="text-sm font-medium text-gray-300">Select New Admin</label>
+            <Select onValueChange={setNewAdminId} value={newAdminId}>
               <SelectTrigger className="bg-gray-800 border-gray-700 text-gray-100">
                 <SelectValue placeholder="Select a user" />
               </SelectTrigger>
@@ -134,17 +99,6 @@ const SpentForm = ({ isOpen, onClose }: SpentFormProps) => {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-300">Amount</label>
-            <Input
-              type="number"
-              placeholder="Enter amount..."
-              value={totalMoney}
-              onChange={(e) => setTotalMoney(e.target.value)}
-              className="bg-gray-800 border-gray-700 text-gray-100 placeholder:text-gray-500"
-            />
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">
@@ -166,4 +120,4 @@ const SpentForm = ({ isOpen, onClose }: SpentFormProps) => {
   );
 };
 
-export default SpentForm;
+export default ChangeAdminPopup;
