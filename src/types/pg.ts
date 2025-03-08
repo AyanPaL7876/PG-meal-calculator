@@ -39,14 +39,14 @@ export interface spent {
 }
 
 export interface Month {
-    name : string,
+    month : string,
     mealSheet : mealData[],
     spentSheet : spent[],
     expenseSheet : Expense[],
     totalMeal : number,
     totalSpent: number,
     totalExpense: number,
-    summarie : userSummarie[],
+    userSummaries : userSummarie[],
     mealCharge : number,
     masiCharge : number,
     baseMeal : number,
@@ -60,8 +60,8 @@ export interface PG {
     baseMeal: number,
     users?: string[],
     request?: string[],
-    currMonth?: Month[],
-    prevMonth?: Month[],
+    currMonth?: Month,
+    prevMonth?: Month,
     
 }
 

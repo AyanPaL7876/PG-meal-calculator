@@ -56,7 +56,7 @@ export const getExpenses = async (pgId: string, currMonth: boolean) => {
         if(currMonth) {
             expenses = pgSnapshot.data()?.currMonth?.expenseSheet || [];
         } else {
-            expenses = pgSnapshot.data()?.PrevMonth?.expenseSheet || [];
+            expenses = pgSnapshot.data()?.prevMonth?.expenseSheet || [];
         }
         return expenses;
     } catch (error) {
@@ -90,6 +90,7 @@ export const deleteExpense = async (pgId: string, date: string) => {
             "currMonth.totalExpense": totalExpense - expenseToDelete.totalMoney,
         });
 
+        await createOrUpdateSummary(pgId);
         console.log("Expense deleted successfully!");
         return { success: true, message: "Expense deleted successfully" };
     } catch (error) {

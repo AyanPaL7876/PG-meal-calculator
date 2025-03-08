@@ -51,7 +51,13 @@ const CreatePg = ({ isOpen, onClose }: CreatePgProps) => {
       address,
       masiCharge: Number(masiCharge),
       baseMeal: Number(baseMeal),
-      users: [user.uid],
+      users: [use.uid],
+      currMonth:{
+        month: new Date().getMonth(),
+        totalExpenses:0,
+        totalMeal:0,
+        totalSpent:0,
+      }
     };
 
     try {

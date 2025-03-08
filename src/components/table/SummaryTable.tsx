@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getUserSummarie } from "@/services/summaryServices";
-import { userSummarie } from "@/types/pg";
+import { Month, userSummarie } from "@/types/pg";
 import {
   Table,
   TableBody,
@@ -17,11 +16,10 @@ import { Calculator, Utensils, Wallet, Receipt, Coins } from 'lucide-react';
 import CardLoading from "./CardLoading";
 
 interface SummaryTableProps {
-  pgId: string;
-  currMonth: boolean;
+  data: Month;
 }
 
-export default function SummaryTable({ pgId,currMonth }: SummaryTableProps) {
+export default function SummaryTable({ data }: SummaryTableProps) {
   const [summaries, setSummaries] = useState<userSummarie[]>([]);
   const [loading, setLoading] = useState(true);
   const [mealCharge, setMealCharge] = useState(0);
@@ -35,14 +33,9 @@ export default function SummaryTable({ pgId,currMonth }: SummaryTableProps) {
 
   useEffect(() => {
     async function fetchSummary() {
-      if (!pgId) {
-        console.error("❌ pgId is undefined or invalid");
-        return;
-      }
-
       setLoading(true);
       try {
-        const data = await getUserSummarie(pgId,currMonth);
+        console.log(data);
         if (data?.userSummaries) {
           setSummaries(data.userSummaries);
           setMealCharge(data.mealCharge);
@@ -59,7 +52,7 @@ export default function SummaryTable({ pgId,currMonth }: SummaryTableProps) {
     }
 
     fetchSummary();
-  }, [pgId]);
+  }, [data]);
 
   useEffect(() => {
     if (summaries.length > 0) {

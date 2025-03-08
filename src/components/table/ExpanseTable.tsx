@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { getExpenses, deleteExpense } from "@/services/expenseService";
+import { deleteExpense } from "@/services/expenseService";
 import { useAuth } from "../../context/AuthContext";
 import {
   Table,
@@ -24,21 +24,15 @@ import { toast } from "react-hot-toast";
 import { format, parseISO } from "date-fns";
 import { Calendar, DollarSign, Trash2, FileBarChart } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Expense } from "@/types/pg";
 
-interface Expense {
-  date: string;
-  userName: string;
-  details: string;
-  totalMoney: number;
-}
 
 interface ExpenseTableProps {
-  pgId: string;
-  onExpenseDeleted?: () => void;
+  data : Expense[];
   currMonth: boolean;
 }
 
-export default function ExpenseTable({ pgId, onExpenseDeleted, currMonth }: ExpenseTableProps) {
+export default function ExpenseTable({ data, currMonth }: ExpenseTableProps) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,11 +47,6 @@ export default function ExpenseTable({ pgId, onExpenseDeleted, currMonth }: Expe
     setError(null);
     
     try {
-      if (!pgId) {
-        throw new Error("PG ID is required");
-      }
-      
-      const data = await getExpenses(pgId,currMonth);
       if (data) {
         // Sort expenses by date in descending order (newest first)
         const sortedExpenses = [...data].sort((a, b) => {
@@ -85,7 +74,7 @@ export default function ExpenseTable({ pgId, onExpenseDeleted, currMonth }: Expe
     } finally {
       setLoading(false);
     }
-  }, [pgId]);
+  }, [data]);
 
   useEffect(() => {
     fetchExpenses();
@@ -94,7 +83,7 @@ export default function ExpenseTable({ pgId, onExpenseDeleted, currMonth }: Expe
   const handleDelete = async (date: string) => {
     setIsDeleting(true);
     try {
-      const result = await deleteExpense(pgId, date);
+      const result = await deleteExpense(user?.pgId as string, date);
       if (result.success) {
         toast.success(result.message || "Expense deleted successfully");
         setExpenses(expenses.filter((expense) => expense.date !== date));
@@ -107,10 +96,7 @@ export default function ExpenseTable({ pgId, onExpenseDeleted, currMonth }: Expe
         // Recalculate unique users
         const uniqueUserNames = new Set(updatedExpenses.map(expense => expense.userName));
         setUniqueUsers(uniqueUserNames.size);
-        
-        if (onExpenseDeleted) {
-          onExpenseDeleted();
-        }
+      
       } else {
         toast.error(result.message || "Failed to delete expense");
       }
@@ -197,7 +183,7 @@ export default function ExpenseTable({ pgId, onExpenseDeleted, currMonth }: Expe
                   <TableHead className="text-right font-semibold text-white">
                     <span>Amount</span>
                   </TableHead>
-                  {user?.role === "admin" && (
+                  {user?.role === "admin"&& currMonth  && (
                   <TableHead className="text-center font-semibold text-white sticky right-0 bg-slate-800 z-10">
                     <span>Action</span>
                   </TableHead>
@@ -223,6 +209,7 @@ export default function ExpenseTable({ pgId, onExpenseDeleted, currMonth }: Expe
                         {formatCurrency(expense.totalMoney)}
                       </Badge>
                     </TableCell>
+                    {user?.role === "admin"&& currMonth  && (
                     <TableCell className="text-center sticky right-0 bg-slate-900 z-10">
                       <Dialog open={deleteConfirm === expense.date} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
                         <DialogTrigger asChild>
@@ -267,6 +254,7 @@ export default function ExpenseTable({ pgId, onExpenseDeleted, currMonth }: Expe
                         </DialogContent>
                       </Dialog>
                     </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>

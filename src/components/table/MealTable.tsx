@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getMealSheet } from "@/services/mealService";
 import { mealData } from "@/types/pg";
 import {
   Table,
@@ -19,26 +18,27 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/context/AuthContext";
 import { format, parseISO } from "date-fns";
 import { Calendar, User, PlusCircle, FileBarChart } from 'lucide-react';
 
 interface MealTableProps {
-  pgId: string;
+  data: mealData[];
   currMonth: boolean;
 }
 
-export default function MealTable({ pgId , currMonth}: MealTableProps) {
+export default function MealTable({ data , currMonth}: MealTableProps) {
   const [mealSheet, setMealSheet] = useState<mealData[]>([]);
   const [dates, setDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalMeals, setTotalMeals] = useState(0);
   const [totalExtra, setTotalExtra] = useState(0);
+  const {user} = useAuth();
 
   useEffect(() => {
     async function fetchMeals() {
       setLoading(true);
       try {
-        const data = await getMealSheet(pgId, currMonth);
         if (data) {
           setMealSheet(data);
           const uniqueDates = Array.from(
@@ -65,7 +65,7 @@ export default function MealTable({ pgId , currMonth}: MealTableProps) {
       }
     }
     fetchMeals();
-  }, [pgId]);
+  }, [data]);
 
   // Function to format date if it's a valid ISO string
   const formatDate = (dateString: string) => {
@@ -94,6 +94,15 @@ export default function MealTable({ pgId , currMonth}: MealTableProps) {
           Meal Records
         </CardTitle>
       </CardHeader>
+
+      {/* edit button */}
+      {currMonth && user?.role==="admin" && (
+      <CardContent className="flex justify-end">
+        <button className="bg-blue-700 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition-all duration-200">
+          Edit
+        </button>
+      </CardContent>)}
+
       
       <CardContent>
         <div className="overflow-x-auto rounded-lg border border-slate-700">

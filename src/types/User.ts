@@ -8,6 +8,10 @@ export interface StoreUser {
     role: "user" | "admin";
     pgId?: string;
     requestedId: RequestPgs[]
+    spent: number;
+    expense: number;
+    extra: number;
+    balance: number;
   }
 
 export interface RequestPgs{

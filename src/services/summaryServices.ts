@@ -1,6 +1,6 @@
 import { db } from "@/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { userSummarie, Expense, spent } from "@/types/pg";
+import { userSummarie, Expense, spent, Month } from "@/types/pg";
 
 
 export const createOrUpdateSummary = async (pgId: string) => {
@@ -112,6 +112,10 @@ export const createOrUpdateSummary = async (pgId: string) => {
         userMeal > 0 ? balanceWithoutMasi - (pgData.masiCharge || 0) : balanceWithoutMasi
       );
 
+      userData.expense = khoroch;
+      userData.balance = balanceWithAnti;
+      
+      await updateDoc(doc(db, "users", user), userData);
       userSummaries.push({
         name: userData.name,
         userTotalMeal: userMeal,
@@ -156,9 +160,9 @@ export const getUserSummarie = async (pgId: string, currMonth:boolean) => {
     }
 
     const pgData = pgSnap.data();
-    if(currMonth) return pgData.currMonth;
+    const data:Month = currMonth ? pgData.currMonth : pgData.prevMonth;
 
-    return pgData.prevMonth;
+    return data;
   } catch (error) {
     console.error("❌ Error fetching user summary:", error);
     return false;

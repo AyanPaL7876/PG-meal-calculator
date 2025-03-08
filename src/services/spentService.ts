@@ -13,6 +13,14 @@ export const addSpent = async (pgId: string, userId: string, money: number) => {
       return;
     }
 
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+    if(!userSnap.exists()) {
+      console.error("❌ User document not found!");
+      return;
+    }
+    const userData = userSnap.data();
+
     const pg = pgSnap.data();
     const spentSheet: spent[] = pg?.currMonth?.spentSheet ?? [];
     const totalSpent = pg?.currMonth?.totalSpent ?? 0;
@@ -38,6 +46,9 @@ export const addSpent = async (pgId: string, userId: string, money: number) => {
         details: [{ date: new Date().toISOString(), money}],
       });
     }
+
+    userData.spent= (userData.spent ?? 0) + money;
+    await updateDoc(userRef, {spent: userData.spent});
 
     // Update Firestore
     await updateDoc(pgRef, {
@@ -65,7 +76,7 @@ export const getSpentSheet = async (pgId: string, currMonth: boolean) => {
     if(currMonth){
       spentSheet= pgSnap.data()?.currMonth?.spentSheet ?? [];
     }else{
-      spentSheet= pgSnap.data()?.PrevMonth?.spentSheet ?? [];
+      spentSheet= pgSnap.data()?.prevMonth?.spentSheet ?? [];
     }
 
     return spentSheet;
@@ -89,6 +100,14 @@ export const deleteSpentDetails = async (
       console.error("❌ PG document not found!");
       return false;
     }
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+    if(!userSnap.exists()) {
+      console.error("❌ User document not found!");
+      return false;
+    }
+    const userData = userSnap.data();
+
 
     const pg = pgSnap.data();
     const spentSheet: spent[] = pg?.currMonth?.spentSheet ?? [];
@@ -124,6 +143,9 @@ export const deleteSpentDetails = async (
       "currMonth.spentSheet": spentSheet,
       "currMonth.totalSpent": totalSpent - amountToSubtract,
     });
+
+    userData.spent= (userData.spent ?? 0) - amountToSubtract;
+    await updateDoc(userRef, {spent: userData.spent});
 
     console.log("✅ Expense detail deleted successfully!");
     return true;

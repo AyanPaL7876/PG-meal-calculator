@@ -1,6 +1,6 @@
 import { StoreUser } from "@/types";
 import { db } from "../firebase";
-import { PG } from "@/types/pg";
+import { PG, userSummarie } from "@/types/pg";
 import { doc, getDoc, updateDoc, collection, getDocs, addDoc, runTransaction } from "firebase/firestore";
 
 // Move current month data to previous month
@@ -16,9 +16,30 @@ export const moveToPreviousMonth = async (pgId: string) => {
 
     const pgData = pgSnap.data();
     const currMonth = pgData?.currMonth;
+    const users = pgData?.users ?? [];
+    const userSummaries = currMonth?.userSummaries ?? [];
+
+    for(const user of users) {
+      const userRef = doc(db, "users", user);
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) {
+        console.error("❌ User not found!");
+        continue;
+      }
+      //find user balance With Masi
+      const userSummary = userSummaries.find((u: userSummarie) => u.name === user.name);
+      const bal = userSummary?.balanceWithAnti ?? 0;
+      console.log(`📊 User ${user} Balance: ${bal}`);
+      const userData = userSnap.data();
+      userData.mealCount = 0;
+      userData.expense = 0;
+      userData.spent = bal;
+
+      await updateDoc(userRef, userData);
+    }
 
     await updateDoc(pgRef, {
-      preMonth: currMonth,
+      prevMonth: currMonth,
       currMonth: {
         month: new Date().toLocaleString("default", { month: "long", year: "numeric" }),
         mealSheet: [],
@@ -34,8 +55,10 @@ export const moveToPreviousMonth = async (pgId: string) => {
     });
 
     console.log("✅ Month reset successfully!");
+    return true;
   } catch (error) {
     console.error("❌ Error resetting month:", error);
+    return false;
   }
 };
 

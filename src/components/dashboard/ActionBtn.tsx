@@ -7,7 +7,7 @@ import { doc, getDoc } from "firebase/firestore";
 import LoadingScreen from "@/components/Loading";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
-import { Users, Receipt, Calculator, MessageSquare, Calendar } from "lucide-react";
+import { UserCheck, MessageSquare, Calculator, Calendar } from "lucide-react";
 
 export default function ActionBtn() {
   const { user } = useAuth();
@@ -65,7 +65,7 @@ export default function ActionBtn() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 ">
+    <div className="flex flex-col items-center justify-center p-4">
       {loading ? (
         <Skeleton className="h-8 w-1/2 bg-gray-300 rounded" />
       ) : pgName ? (
@@ -84,35 +84,29 @@ export default function ActionBtn() {
             {[
               { 
                 gradient: "from-blue-500/10 to-blue-600/10", 
-                path: "/dashboard/pg-users", 
-                icon: <Users className="h-6 w-6" />, 
-                text: "All users",
+                path: "/dashboard/visit-user", 
+                icon: <UserCheck className="h-6 w-6" />, 
+                text: "Visit User",
                 iconColor: "text-blue-400"
               },
               { 
-                gradient: "from-green-500/10 to-green-600/10", 
-                path: "/dashboard/addspent", 
-                icon: <Receipt className="h-6 w-6" />, 
-                text: "Add Spent",
-                iconColor: "text-green-400"
+                gradient: "from-red-500/10 to-red-600/10", 
+                path: "/dashboard/request-user", 
+                icon: <MessageSquare className="h-6 w-6" />, 
+                text: "See Request User",
+                iconColor: "text-red-400",
+                adminOnly: true
               },
               { 
                 gradient: "from-purple-500/10 to-purple-600/10", 
-                path: "/dashboard/currentMonth", 
+                path: "/dashboard/current-month", 
                 icon: <Calculator className="h-6 w-6" />, 
-                text: "Meal Summary",
+                text: "Current Month Summary",
                 iconColor: "text-purple-400"
               },
               { 
-                gradient: "from-red-500/10 to-red-600/10", 
-                path: "/dashboard/request", 
-                icon: <MessageSquare className="h-6 w-6" />, 
-                text: "Request",
-                iconColor: "text-red-400"
-              },
-              { 
                 gradient: "from-teal-500/10 to-teal-600/10", 
-                path: "/dashboard/previousmonthsummary", 
+                path: "/dashboard/previous-month", 
                 icon: <Calendar className="h-6 w-6" />, 
                 text: "Previous Month Summary",
                 iconColor: "text-teal-400"
@@ -121,32 +115,31 @@ export default function ActionBtn() {
               <motion.div
                 key={index}
                 variants={itemVariants}
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => router.push(item.path)}
                 className={`
-                  rounded-xl p-4 cursor-pointer
+                  rounded-xl p-6 cursor-pointer
                   transition-all duration-300
                   hover:shadow-lg group
                   backdrop-blur-sm relative
+                  w-36 h-36
+                  flex flex-col items-center justify-center
+                  ${item.adminOnly && user.role !== "admin" ? "hidden" : "block"}
                   ${item.iconColor}
                 `}
               >
-                <div className="flex items-center gap-4">
-                  <div className="
-                    h-12 w-12 rounded-full 
-                    bg-gray-900/50 
-                    flex items-center justify-center
-                    group-hover:scale-110 transition-transform
-                  ">
-                    {item.icon}
-                  </div>
+                <div className="
+                  h-16 w-16 rounded-full 
+                  bg-gray-900/50 
+                  flex items-center justify-center
+                  group-hover:scale-110 transition-transform mb-4
+                ">
+                  {item.icon}
                 </div>
-                <motion.div 
-                  className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-center bg-black/50 text-white text-sm rounded px-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                >
+                <div className="text-center text-white font-medium text-sm mt-2">
                   {item.text}
-                </motion.div>
+                </div>
               </motion.div>
             ))}
           </motion.div>

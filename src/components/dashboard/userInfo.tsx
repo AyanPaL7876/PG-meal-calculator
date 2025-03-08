@@ -148,7 +148,7 @@ export default function UserInfo() {
   };
 
   return (
-    <div className="flex pt-20 flex-col items-center justify-center p-4 bg-gray-900 min-h-screen">
+    <div className="flex pt-20 flex-col items-center justify-center p-4 bg-gray-900">
       <div className="w-full max-w-7xl space-y-6">
         {/* Profile Header Card */}
         <motion.div
@@ -285,7 +285,7 @@ export default function UserInfo() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-white">
-                {formatCurrency(userStats?.userTotalExpense)}
+                {formatCurrency(user?.expense || 0)}
               </div>
               <p className="text-green-200 text-sm mt-1">Your shared expenses this month</p>
             </CardContent>
@@ -300,7 +300,7 @@ export default function UserInfo() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-white">
-                {formatCurrency(userStats?.userTotalSpent)}
+                {formatCurrency(user?.spent || 0)}
               </div>
               <p className="text-purple-200 text-sm mt-1">Your contributions to PG</p>
             </CardContent>
@@ -315,7 +315,7 @@ export default function UserInfo() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-white">
-                {formatCurrency(userStats?.balance)}
+                {formatCurrency(user?.balance)}
               </div>
               <p className="text-amber-200 text-sm mt-1">
                 {userStats?.balance && userStats.balance > 0 
@@ -326,58 +326,6 @@ export default function UserInfo() {
           </Card>
         </motion.div>
 
-        {/* Recent Activity */}
-        <motion.div
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="bg-slate-800/90 backdrop-blur-sm rounded-lg shadow-xl p-6"
-        >
-          <h2 className="text-xl font-bold text-white mb-4">Recent Activity</h2>
-          
-          {recentActivities.length === 0 ? (
-            <div className="text-center py-6 text-slate-400">
-              No recent activities found
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {recentActivities.map((activity, index) => (
-                <div key={index} className="relative pl-6 border-l-2 border-slate-700 pb-4 last:pb-0">
-                  <div className="absolute left-[-8px] top-0 w-4 h-4 rounded-full bg-slate-800 border-2 border-slate-700">
-                    {activity.type === 'meal' ? (
-                      <Utensils size={10} className="absolute top-0.5 left-0.5 text-green-400" />
-                    ) : (
-                      <DollarSign size={10} className="absolute top-0.5 left-0.5 text-blue-400" />
-                    )}
-                  </div>
-                  
-                  <div className="bg-slate-700/30 rounded-lg p-3">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="text-sm text-slate-400">{formatDate(activity.date)}</span>
-                        <h3 className="font-medium text-slate-200">
-                          {activity.type === 'meal' 
-                            ? `Meal: ${activity.sessions.join(', ')}` 
-                            : `Expense: ${activity.details || 'General expense'}`}
-                        </h3>
-                      </div>
-                      {activity.type === 'expense' && (
-                        <span className="bg-blue-900/50 text-blue-300 px-2 py-1 rounded text-sm font-medium">
-                          {formatCurrency(activity.amount)}
-                        </span>
-                      )}
-                      {activity.type === 'meal' && (
-                        <span className="bg-green-900/50 text-green-300 px-2 py-1 rounded text-sm font-medium">
-                          {activity.sessions.length} {activity.sessions.length === 1 ? 'session' : 'sessions'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </motion.div>
 
       </div>
     </div>

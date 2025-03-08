@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSpentSheet, deleteSpentDetails } from "@/services/spentService";
+import { deleteSpentDetails } from "@/services/spentService";
 import { toast } from "react-hot-toast";
 import { Trash2, Receipt, User, Calendar, DollarSign, FileBarChart2 } from "lucide-react";
 import {
@@ -32,37 +32,26 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface SpentDetail {
-  date: string;
-  money: number;
-}
-
-interface SpentUser {
-  userId: string;
-  userName?: string;
-  totalMoney: number;
-  details: SpentDetail[];
-}
+import { spent } from "@/types/pg";
+import { useAuth } from "@/context/AuthContext";
 
 interface SpentTableProps {
-  pgId: string;
-  isAdmin?: boolean;
+  data : spent[];
   currMonth: boolean;
 }
 
-export default function SpentTable({ pgId, isAdmin = true,currMonth }: SpentTableProps) {
-  const [spentSheet, setSpentSheet] = useState<SpentUser[]>([]);
+export default function SpentTable({ data, currMonth }: SpentTableProps) {
+  const [spentSheet, setSpentSheet] = useState<spent[]>([]);
   const [dates, setDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState<{ userId: string; date: string } | null>(null);
   const [totalSpent, setTotalSpent] = useState(0);
+  const { user } = useAuth();
 
   useEffect(() => {
     async function fetchSpentData() {
       setLoading(true);
       try {
-        const data = await getSpentSheet(pgId,currMonth);
         if (data) {
           setSpentSheet(data);
           const uniqueDates = Array.from(
@@ -82,13 +71,13 @@ export default function SpentTable({ pgId, isAdmin = true,currMonth }: SpentTabl
       }
     }
     fetchSpentData();
-  }, [pgId]);
+  }, [data]);
 
   const handleDelete = async () => {
     if (!deleteConfirm) return;
 
     try {
-      const success = await deleteSpentDetails(pgId, deleteConfirm.userId, deleteConfirm.date);
+      const success = await deleteSpentDetails(user?.pgId as string, deleteConfirm.userId, deleteConfirm.date);
       if (success) {
         toast.success("Expense deleted successfully");
         
@@ -179,14 +168,14 @@ export default function SpentTable({ pgId, isAdmin = true,currMonth }: SpentTabl
             </TableHeader>
 
             <TableBody>
-              {spentSheet.map((user) => (
-                <TableRow key={user.userId} className="border-slate-700 hover:bg-slate-800">
+              {spentSheet.map((u) => (
+                <TableRow key={u.userId} className="border-slate-700 hover:bg-slate-800">
                   <TableCell className="font-medium text-white sticky left-0 bg-slate-900 z-10">
-                    {user.userName ?? "Unknown User"}
+                    {u.userName ?? "Unknown User"}
                   </TableCell>
                   
                   {dates.map((date) => {
-                    const expense = user.details.find((detail) => detail.date === date);
+                    const expense = u.details.find((detail) => detail.date === date);
                     return (
                       <TableCell key={date} className="text-center p-2">
                         {expense ? (
@@ -195,13 +184,13 @@ export default function SpentTable({ pgId, isAdmin = true,currMonth }: SpentTabl
                               ₹{expense.money.toFixed(2)}
                             </Badge>
                             
-                            {isAdmin && (
+                            {user?.role === "admin" && currMonth && (
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-6 w-6 mt-1 text-red-400 hover:text-red-500 hover:bg-slate-700"
                                 onClick={() =>
-                                  setDeleteConfirm({ userId: user.userId, date: expense.date })
+                                  setDeleteConfirm({ userId: u.userId, date: expense.date })
                                 }
                               >
                                 <Trash2 size={14} />
@@ -215,7 +204,7 @@ export default function SpentTable({ pgId, isAdmin = true,currMonth }: SpentTabl
                   
                   <TableCell className="text-center font-bold sticky right-0 bg-slate-900 z-10">
                     <Badge className="bg-blue-700 text-white px-3 py-1">
-                      ₹{user.totalMoney.toFixed(2)}
+                      ₹{u.totalMoney.toFixed(2)}
                     </Badge>
                   </TableCell>
                 </TableRow>
@@ -260,7 +249,7 @@ export default function SpentTable({ pgId, isAdmin = true,currMonth }: SpentTabl
       </CardContent>
       
       <CardFooter className="text-sm text-center text-slate-400 italic border-t border-slate-700 pt-4 mt-2">
-        {isAdmin ? 
+        {user?.role === "admin" ? 
           "* Click the delete button under each expense to remove it" : 
           "* Contact an admin to make corrections to expense records"}
       </CardFooter>

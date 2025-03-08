@@ -1,6 +1,7 @@
 import { db } from "@/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { mealData } from "@/types/pg";
+import { createOrUpdateSummary } from "./summaryServices";
 
 export const markMeal = async (pgId: string, userId: string, date: string, newSession: string) => {
   if (!pgId || !userId || !date || !newSession) {
@@ -63,6 +64,8 @@ export const markMeal = async (pgId: string, userId: string, date: string, newSe
 
     await updateDoc(pgRef, { "currMonth.mealSheet": mealSheet, "currMonth.totalMeal": pg.currMonth.totalMeal });
     await updateDoc(userRef, { mealCount: user.mealCount });
+
+    await createOrUpdateSummary(pgId);
 
     console.log("✅ Meal marked successfully!");
     return { success: true, message: "Meal marked successfully!" };
