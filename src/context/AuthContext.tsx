@@ -5,6 +5,7 @@ import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User 
 import { db } from "../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { StoreUser } from "@/types";
+import { destroyCookie } from "nookies"; // Import nookies for cookie management
 
 
 interface AuthContextType {
@@ -39,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           photoURL: googleUser.photoURL || "",
           mealStatus: false,
           role: "user",
-          pgId: null,
+          pgId: "",
         };
 
         await setDoc(userRef, newUser);
@@ -54,8 +55,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // 📌 Handle Logout
+
   const logout = async () => {
     await signOut(auth);
+    destroyCookie(null, "token"); // Remove the authentication token
     setUser(null);
   };
 

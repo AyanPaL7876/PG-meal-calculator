@@ -177,7 +177,7 @@ export const acceptRequest = async (pgId: string, userId: string) => {
       return;
     }
     const pgData = pgSnap.data();
-    const userIds: string[] = pgData?.user ?? [];
+    const userIds: string[] = pgData?.users ?? [];
     const requestIds: string[] = pgData?.request ?? [];
     
     const userIndex = requestIds.findIndex((id) => id === userId);
@@ -191,7 +191,7 @@ export const acceptRequest = async (pgId: string, userId: string) => {
     userData.pgId = pgId;
     userData.requestStatus = "accepted";
 
-    await updateDoc(pgRef, { user: userIds, request: requestIds });
+    await updateDoc(pgRef, { users: userIds, request: requestIds });
     await updateDoc(userRef, userData);
     console.log("✅ Request accepted successfully!");
   } catch (error) {

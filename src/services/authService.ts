@@ -1,9 +1,13 @@
 import { auth, googleProvider, db } from "../firebase";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import {StoreUser } from "@/types/User";
+import jwt from "jsonwebtoken";
+import { setCookie, destroyCookie } from "nookies";
+import { StoreUser } from "@/types/User";
 
-// 📌 Google Sign-In and Firestore Storage
+const SECRET_KEY = "your-secret-key"; // Replace with a secure key (store in .env)
+
+// 📌 Google Sign-In with Token Generation
 export const signInWithGoogle = async (): Promise<StoreUser | null> => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
@@ -27,7 +31,7 @@ export const signInWithGoogle = async (): Promise<StoreUser | null> => {
         mealCount: 0,
         role: "user",
         pgId: "",
-        requestedId: [{pgId: "", status: "", date: ""}],
+        requestedId: [{ pgId: "", status: "", date: "" }],
       };
 
       await setDoc(userRef, userData);
@@ -36,31 +40,23 @@ export const signInWithGoogle = async (): Promise<StoreUser | null> => {
       userData = userSnap.data() as StoreUser;
     }
 
+    // 📌 Generate a JWT token
+    const token = jwt.sign(
+      { uid: userData.uid, role: userData.role, email: userData.email },
+      SECRET_KEY,
+      { expiresIn: "7d" } // Token valid for 7 days
+    );
+
+    // 📌 Store token in cookies
+    setCookie(null, "token", token, {
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: "/",
+      httpOnly: true, // Secure cookie
+    });
+
     return userData;
   } catch (error) {
     console.error("Login error:", error);
     return null;
   }
-};
-
-// 📌 Logout function
-export const logOut = async () => {
-  await signOut(auth);
-};
-
-// 📌 Listen for auth state changes & fetch Firestore user
-export const listenForAuthChanges = (callback: (user: StoreUser | null) => void) => {
-  return onAuthStateChanged(auth, async (firebaseUser) => {
-    if (firebaseUser) {
-      const userRef = doc(db, "users", firebaseUser.uid);
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
-        callback(userSnap.data() as StoreUser);
-      } else {
-        callback(null);
-      }
-    } else {
-      callback(null);
-    }
-  });
 };

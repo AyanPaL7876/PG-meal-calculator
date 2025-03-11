@@ -12,6 +12,7 @@ export interface StoreUser {
     expense: number;
     extra: number;
     balance: number;
+    joinedAt?: Date;
   }
 
 export interface RequestPgs{

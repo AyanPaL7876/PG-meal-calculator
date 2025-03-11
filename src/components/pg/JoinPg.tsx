@@ -106,7 +106,7 @@ export default function JoinPg() {
                         </div>
                       </div>
                       <button
-                        onClick={() => requestToJoin(pg.id)}
+                        onClick={() => requestToJoin(pg?.id as string)}
                         className="px-4 py-2 bg-blue-500/60 hover:bg-blue-500/90 text-gray-100 rounded-lg transition-all duration-300 flex items-center gap-2"
                       >
                         <UserPlus className="h-4 w-4" />

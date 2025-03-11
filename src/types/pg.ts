@@ -40,16 +40,16 @@ export interface spent {
 
 export interface Month {
     month : string,
-    mealSheet : mealData[],
-    spentSheet : spent[],
-    expenseSheet : Expense[],
+    mealSheet ?: mealData[],
+    spentSheet ?: spent[],
+    expenseSheet ?: Expense[],
     totalMeal : number,
     totalSpent: number,
     totalExpense: number,
-    userSummaries : userSummarie[],
-    mealCharge : number,
+    userSummaries ?: userSummarie[],
+    mealCharge ?: number,
     masiCharge : number,
-    baseMeal : number,
+    baseMeal ?: number,
 }
 
 export interface PG {

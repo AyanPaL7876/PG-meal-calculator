@@ -1,14 +1,38 @@
 "use client";
-import UserInfo from "@/components/dashboard/userInfo";
 import CreatePg from "@/components/pg/CreatePg";
 import JoinPg from "@/components/pg/JoinPg";
 import RequestPgs from "@/components/pg/RequestPgs";
 import { Plus } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import LoadingScreen from "@/components/Loading";
 
 
-function page() {
+function Page() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      router.push("/signin");
+      return ;
+    }
+    if(user?.pgId !== ""){
+      router.push("/dashboard");
+      return ;
+    }
+
+    setLoading(false);
+
+  }, [user, router]);
+
+  if(loading){
+    return <LoadingScreen message="Fetching User and PG details..." />;
+  }
+
   return (
     <div>
       {/* Navbar */}
@@ -29,7 +53,6 @@ function page() {
         </div>
       </nav>
       <div className="pt-10">
-        <UserInfo />
         <JoinPg />
         <RequestPgs />
         {isOpen && (<CreatePg isOpen={isOpen} onClose={() => setIsOpen(false)} />)}
@@ -38,4 +61,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

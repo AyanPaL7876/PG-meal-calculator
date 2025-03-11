@@ -17,18 +17,11 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-
-interface User {
-  name: string;
-  email: string;
-  photoURL: string;
-  role: string;
-  joinedAt: string;
-}
+import { StoreUser } from '@/types';
 
 export default function PGUsers() {
   const { user } = useAuth();
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<StoreUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteEmail, setDeleteEmail] = useState<string | null>(null);
 
@@ -37,9 +30,10 @@ export default function PGUsers() {
 
     const fetchUsers = async () => {
       try {
-        const usersData = await getPGusers(user.pgId);
+        const usersData = await getPGusers(user.pgId as string);
         setUsers(usersData || []);
       } catch (error) {
+        console.error("Failed to fetch users:", error);
         toast.error("Failed to fetch users.");
       } finally {
         setLoading(false);
@@ -55,22 +49,27 @@ export default function PGUsers() {
   };
 
   return (
-    <div className="min-h-screen pt-20 bg-gradient-to-tr from-gray-900 to-gray-800 text-white">
+    <div className="min-h-screen pt-20 bg-slate-900 text-white">
       <div className="container mx-auto py-10">
         <h1 className="text-4xl font-extrabold text-center mb-10 bg-gradient-to-r from-blue-500 to-purple-400 bg-clip-text text-transparent">
           PG Members
         </h1>
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array(6).fill(null).map((_, i) => (
-              <Skeleton key={i} className="h-72 w-full rounded-xl bg-gray-800/50" />
-            ))}
+            {Array(6)
+              .fill(null)
+              .map((_, i) => (
+                <Skeleton key={i} className="h-72 w-full rounded-xl bg-gray-800/50" />
+              ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {users.map((pgUser) => (
-              <div key={pgUser.email} className="rounded-xl overflow-hidden shadow-lg bg-gray-800/50 backdrop-blur-md transition-transform transform hover:-translate-y-2 hover:shadow-xl relative">
-                {user?.role === 'admin' && pgUser.email !== user.email && (
+              <div
+                key={pgUser.email}
+                className="rounded-xl overflow-hidden shadow-lg bg-gray-800/50 backdrop-blur-md transition-transform transform hover:-translate-y-2 hover:shadow-xl relative"
+              >
+                {user?.role === "admin" && pgUser.email !== user.email && (
                   <button
                     onClick={() => setDeleteEmail(pgUser.email)}
                     className="absolute top-4 right-4 text-red-400 hover:text-red-300 focus:outline-none"
@@ -95,11 +94,17 @@ export default function PGUsers() {
                   )}
                   <h3 className="text-xl font-semibold">{pgUser.name}</h3>
                   <p className="text-gray-400">{pgUser.email}</p>
-                  <span className={`inline-block mt-3 px-4 py-1 rounded-full text-sm font-semibold ${pgUser.role === 'admin' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                  <span
+                    className={`inline-block mt-3 px-4 py-1 rounded-full text-sm font-semibold ${
+                      pgUser.role === "admin"
+                        ? "bg-purple-500/20 text-purple-400"
+                        : "bg-blue-500/20 text-blue-400"
+                    }`}
+                  >
                     {pgUser.role.toUpperCase()}
                   </span>
                   <p className="text-sm text-gray-500 mt-2">
-                    Joined: {new Date(pgUser.joinedAt).toLocaleDateString()}
+                    Joined: {new Date(pgUser?.joinedAt as Date).toLocaleDateString()}
                   </p>
                 </div>
               </div>
@@ -112,13 +117,17 @@ export default function PGUsers() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogDescription>Are you sure you want to remove this user? This action cannot be undone.</DialogDescription>
+            <DialogDescription>
+              Are you sure you want to remove this user? This action cannot be undone.
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="secondary">Cancel</Button>
             </DialogClose>
-            <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

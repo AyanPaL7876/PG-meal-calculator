@@ -51,17 +51,18 @@ const CreatePg = ({ isOpen, onClose }: CreatePgProps) => {
       address,
       masiCharge: Number(masiCharge),
       baseMeal: Number(baseMeal),
-      users: [use.uid],
+      users: [user?.uid as string],
       currMonth:{
-        month: new Date().getMonth(),
-        totalExpenses:0,
+        month: new Date().toLocaleString("default", { month: "long", year: "numeric" }),
+        totalExpense:0,
         totalMeal:0,
         totalSpent:0,
+        masiCharge:Number(masiCharge),
       }
     };
 
     try {
-      const res = await createPG(pgData, user.uid);
+      const res = await createPG(pgData, user?.uid as string);
 
       if (res.success) {
         toast.success("PG created successfully!");

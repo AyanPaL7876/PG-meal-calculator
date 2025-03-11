@@ -38,9 +38,9 @@ export default function SummaryTable({ data }: SummaryTableProps) {
         console.log(data);
         if (data?.userSummaries) {
           setSummaries(data.userSummaries);
-          setMealCharge(data.mealCharge);
+          setMealCharge(data?.mealCharge as number);
           setMasiCharge(data.masiCharge);
-          setBaseMeal(data.baseMeal);
+          setBaseMeal(data?.baseMeal as number);
         } else {
           console.warn("⚠️ No summaries found for this PG.");
         }

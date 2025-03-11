@@ -47,7 +47,7 @@ export default function Navbar() {
   const [spentFormOpen, setSpentFormOpen] = useState(false);
   const [adminChangeFormOpen, setAdminChangeFormOpen] = useState(false);
   const [mealStatus, setMealStatus] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState(null);
+  // const [lastUpdated, setLastUpdated] = useState(null);
   const [statusNote, setStatusNote] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [activeItem, setActiveItem] = useState('dashboard');
@@ -56,7 +56,7 @@ export default function Navbar() {
   useEffect(() => {
     if (user) {
       setMealStatus(user.mealStatus || false);
-      setLastUpdated(user.mealStatusLastUpdated || new Date().toISOString());
+      // setLastUpdated(user?.mealStatusLastUpdated || new Date().toISOString());
     }
   }, [user]);
 
@@ -72,7 +72,7 @@ export default function Navbar() {
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = () => {
       if (dropdownOpen) {
         setDropdownOpen(false);
       }
@@ -85,17 +85,17 @@ export default function Navbar() {
   }, [dropdownOpen]);
 
   // Format the last updated time
-  const formatLastUpdated = (timestamp) => {
-    if (!timestamp) return "Never updated";
+  // const formatLastUpdated = (timestamp) => {
+  //   if (!timestamp) return "Never updated";
     
-    const date = new Date(timestamp);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
+  //   const date = new Date(timestamp);
+  //   return new Intl.DateTimeFormat('en-US', {
+  //     month: 'short',
+  //     day: 'numeric',
+  //     hour: '2-digit',
+  //     minute: '2-digit'
+  //   }).format(date);
+  // };
 
   // Memoized toggle function to prevent unnecessary re-renders
   const handleMealStatus = useCallback(async () => {
@@ -104,10 +104,10 @@ export default function Navbar() {
     setIsUpdating(true);
     
     try {
-      const res = await changeMealStatus(user.uid, !mealStatus, statusNote);
+      const res = await changeMealStatus(user.uid, !mealStatus);
       if (res) {
         setMealStatus(!mealStatus);
-        setLastUpdated(new Date().toISOString());
+        // setLastUpdated(new Date().toISOString() as string);
         toast.success(`Meal ${!mealStatus ? 'enabled' : 'disabled'} successfully`, {
           icon: !mealStatus ? '🍽️' : '⏸️',
           style: {
@@ -185,8 +185,14 @@ export default function Navbar() {
     item.showAlways || (item.adminOnly && user.role === "admin")
   );
 
-  const handleMenuItemClick = (item) => {
-    setActiveItem(item.id);
+  type MenuItem = {
+    id: string | number; // Unique identifier for the item
+    action?: () => void; // Optional function to execute when clicked
+    path?: string; // Optional path for navigation
+  };
+  
+  const handleMenuItemClick = (item : MenuItem) => {
+    setActiveItem(item.id as string);
     if (item.action) {
       item.action();
     } else if (item.path) {
@@ -210,7 +216,8 @@ export default function Navbar() {
       
       <div className="flex items-center text-xs text-gray-500 mb-3">
         <Clock size={12} className="mr-1" />
-        <span>Last updated: {formatLastUpdated(lastUpdated)}</span>
+        <span>Last updated: {new Date().toISOString()}</span>
+        {/* <span>Last updated: {formatLastUpdated(lastUpdated)}</span> */}
       </div>
       
       <div className="mb-3">
@@ -264,7 +271,7 @@ export default function Navbar() {
       {mealStatus && (
         <div className="mt-3 flex items-start text-xs text-amber-400 bg-amber-900/30 p-2 rounded-md">
           <AlertCircle size={14} className="mr-1 mt-0.5 flex-shrink-0" />
-          <p>Turning off your meal means you won't be charged for upcoming meals until you turn it back on.</p>
+          <p>Turning off your meal means you won&#x27;t be charged for upcoming meals until you turn it back on.</p>
         </div>
       )}
     </div>
@@ -461,7 +468,7 @@ export default function Navbar() {
                     </div>
                   </div>
                   <div>
-                    <p className="text-gray-300 font-medium">{user.displayName || user.email?.split('@')[0]}</p>
+                    <p className="text-gray-300 font-medium">{user.name || user.email?.split('@')[0]}</p>
                     <p className="text-xs text-gray-500">{user.email}</p>
                   </div>
                 </motion.div>

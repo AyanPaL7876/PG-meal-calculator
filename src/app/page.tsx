@@ -3,7 +3,7 @@ import { signInWithGoogle } from "../services/authService";
 import { JSX } from "react";
 import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
-import { FaUtensils, FaClock, FaMoneyBillWave, FaCalculator, FaUsers, FaChartPie, FaReceipt, FaBell } from "react-icons/fa";
+import { FaUtensils, FaClock, FaMoneyBillWave, FaCalculator, FaUsers, FaChartPie } from "react-icons/fa";
 import { useAuth } from "@/context/AuthContext";
 import { motion } from "framer-motion";
 import { Home as HomeIcon, Menu, X } from "lucide-react";
@@ -316,7 +316,7 @@ export default function HomePage() {
                 <span className="text-2xl font-bold text-white">2</span>
               </div>
               <h3 className="text-xl font-bold text-gray-200 mb-4">Track Expenses</h3>
-              <p className="text-gray-400">Log daily meals, add expenses, upload receipts, and let the app calculate each person's share.</p>
+              <p className="text-gray-400">Log daily meals, add expenses, upload receipts, and let the app calculate each person&#x27;s share.</p>
             </motion.div>
             
             <motion.div
@@ -381,7 +381,7 @@ export default function HomePage() {
                     <p className="text-gray-400 text-sm">{testimonial.role}</p>
                   </div>
                 </div>
-                <p className="text-gray-300 italic">"{testimonial.content}"</p>
+                <p className="text-gray-300 italic">&quot;{testimonial.content}&quot;</p>
               </motion.div>
             ))}
           </div>

@@ -37,7 +37,7 @@ const SpentForm = ({ isOpen, onClose }: SpentFormProps) => {
 
     const fetchUsers = async () => {
       try {
-        const usersData = await getPGusers(user?.pgId);
+        const usersData = await getPGusers(user?.pgId as string);
         console.log("usersData", usersData);
 
         if (usersData && usersData.length > 0) {

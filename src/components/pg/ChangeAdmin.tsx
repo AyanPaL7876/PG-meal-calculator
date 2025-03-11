@@ -36,7 +36,7 @@ const ChangeAdminPopup = ({ isOpen, onClose }: ChangeAdminProps) => {
 
     const fetchUsers = async () => {
       try {
-        const usersData = await getPGusers(user.pgId);
+        const usersData = await getPGusers(user?.pgId as string);
         if (usersData && usersData.length > 0) {
           setUsers(usersData);
         } else {
@@ -60,7 +60,7 @@ const ChangeAdminPopup = ({ isOpen, onClose }: ChangeAdminProps) => {
     }
 
     try {
-      await ChangeAdmin(user.pgId, user.uid, newAdminId);
+      await ChangeAdmin(user?.pgId as string, user?.uid as string, newAdminId);
       toast.success("Admin changed successfully!");
       onClose();
     } catch (error) {
