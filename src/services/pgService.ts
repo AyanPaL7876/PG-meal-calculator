@@ -1,4 +1,4 @@
-import { StoreUser } from "@/types";
+import { StoreUser } from "@/types/User";
 import { db } from "../firebase";
 import { PG, userSummarie } from "@/types/pg";
 import { doc, getDoc, updateDoc, collection, getDocs, addDoc, runTransaction } from "firebase/firestore";

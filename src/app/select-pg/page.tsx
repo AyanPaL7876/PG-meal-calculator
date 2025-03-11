@@ -10,7 +10,7 @@ import LoadingScreen from "@/components/Loading";
 
 
 function Page() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -46,7 +46,9 @@ function Page() {
             >
               <Plus className="text-2xl" /> Create PG
           </button>
-          <button className="flex items-center gap-3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 hover:bg-gray-600 hover:scale-105 transition-all duration-300">
+          <button 
+          onClick={logout}
+          className="flex items-center gap-3 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 hover:bg-gray-600 hover:scale-105 transition-all duration-300">
             Log-out
           </button>
           </div>

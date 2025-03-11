@@ -126,7 +126,7 @@ export default function Navbar() {
     } finally {
       setIsUpdating(false);
     }
-  }, [user, mealStatus, statusNote]);
+  }, [user, mealStatus]);
 
   // Guard clause - return null if no user
   if (!user) return null;

@@ -101,7 +101,7 @@ const UserMealGraph = ({ pgId }: { pgId: string }) => {
     if (pgId) {
       fetchMealData();
     }
-  }, [pgId]);
+  }, [pgId, fetchMealData]);
 
   // Prepare data for total meals chart
   const prepareUserTotalData = () => {

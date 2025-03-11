@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { StoreUser } from '@/types';
+import { StoreUser } from '@/types/User';
 
 export default function PGUsers() {
   const { user } = useAuth();

@@ -1,6 +1,6 @@
 import { db } from "@/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { userSummarie, Expense, spent, Month } from "@/types/pg";
+import { userSummarie, Expense, spent, Month, mealData } from "@/types/pg";
 
 
 export const createOrUpdateSummary = async (pgId: string) => {
@@ -35,7 +35,7 @@ export const createOrUpdateSummary = async (pgId: string) => {
 
     // 🔥 Fetch all users at once to reduce Firestore calls
     const userSnapshots = await Promise.all(
-      users.map((userId) => getDoc(doc(db, "users", userId)))
+      users.map((userId : string) => getDoc(doc(db, "users", userId)))
     );
 
     const userDataMap = new Map();
@@ -89,7 +89,7 @@ export const createOrUpdateSummary = async (pgId: string) => {
 
       // 🔥 Correct way to get extraMeal for this user
       const extraMealEntry = currMonth.mealSheet.find(
-        (meal) => meal.userId === user
+        (meal : mealData) => meal.userId === user
       );
       const extraMeal = extraMealEntry ? extraMealEntry.extra : 0;
 

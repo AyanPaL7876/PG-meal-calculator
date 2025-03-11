@@ -1,15 +1,16 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "../firebase"; // Firebase auth instance
-import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { db } from "../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { StoreUser } from "@/types";
+import { StoreUser } from "@/types/User";
 import { destroyCookie } from "nookies"; // Import nookies for cookie management
-
+import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   user: StoreUser | null;
+  loading: boolean; // Add loading state
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -18,6 +19,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<StoreUser | null>(null);
+  const [loading, setLoading] = useState(true); // Initialize loading as true
+  const router = useRouter();
 
   // 📌 Handle Google Login & Store User in Firestore
   const loginWithGoogle = async () => {
@@ -55,24 +58,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // 📌 Handle Logout
-
   const logout = async () => {
     await signOut(auth);
     destroyCookie(null, "token"); // Remove the authentication token
+    router.push("/signin"); // Redirect to the login page
     setUser(null);
   };
 
   // 📌 Listen for Auth Changes & Fetch Firestore User Data
   useEffect(() => {
+    setLoading(true); // Set loading to true when starting the auth check
+    
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const userRef = doc(db, "users", firebaseUser.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          setUser(userSnap.data() as StoreUser);
+      try {
+        if (firebaseUser) {
+          const userRef = doc(db, "users", firebaseUser.uid);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            setUser(userSnap.data() as StoreUser);
+          } else {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
         }
-      } else {
+      } catch (error) {
+        console.error("Auth state change error:", error);
         setUser(null);
+      } finally {
+        setLoading(false); // Set loading to false when auth check completes
       }
     });
 
@@ -80,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );

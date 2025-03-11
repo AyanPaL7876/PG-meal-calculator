@@ -1,33 +1,48 @@
 "use client";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { auth } from "../firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { toast } from "react-toastify";
+import { useRouter, usePathname } from "next/navigation";
+import { toast } from "react-hot-toast";
+import LoadingScreen from "./Loading";
+import { useAuth } from "@/context/AuthContext";
+import type { ReactNode } from "react";
 
-export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
+// Define protected routes outside the component to prevent recreating on each render
+const protectedRoutes = ["/dashboard", "/select-pg"];
+const adminRoutes = ["/dashboard/attendance", "/dashboard/request-user"];
+
+interface ProtectedRouteProps {
+  children: ReactNode; // ✅ Type for children
+}
+
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        toast.error("You have been logged out. Please sign in again.");
+    // Only run the navigation logic once authentication status is determined
+    if (!loading) {
+      // Redirect unauthenticated users from protected routes
+      if (!user && protectedRoutes.some(route => pathname.startsWith(route))) {
+        toast.error("Unauthorized access. Please sign in.");
         router.push("/signin");
-      } else {
-        try {
-          // Additional check if the user session is invalid (e.g., manually revoked)
-          await user.getIdToken(true); // Refresh token to verify session
-        } catch (error) {
-          console.log("❌ Error verifying user session:", error);
-          toast.error("Session expired. Please log in again.");
-          await signOut(auth);
-          router.push("/signin");
-        }
+        return;
       }
-    });
 
-    return () => unsubscribe();
-  }, [router]);
+      // Redirect non-admin users from admin routes
+      if (user && user.role !== "admin" && adminRoutes.some(route => pathname.startsWith(route))) {
+        toast.error("Unauthorized access. Please sign in as admin.");
+        router.push("/dashboard"); // Redirect to a user-accessible page
+        return;
+      }
+    }
+  }, [user, loading, router, pathname]);
 
-  return <>{children}</>;
+  // Show loading screen during authentication check
+  if (loading) {
+    return <LoadingScreen message="Checking user authentication..." />;
+  }
+
+  // Render children once authentication is verified
+  return children;
 }

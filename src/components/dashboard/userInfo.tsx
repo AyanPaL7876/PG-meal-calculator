@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
 import { db } from "../../firebase";
-import { doc, getDoc, collection, getDocs, query, where, orderBy, limit } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import LoadingScreen from "@/components/Loading";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -11,7 +11,7 @@ import { currentMealOn } from "@/services/pgService";
 import { getUserExpenses } from "@/services/expenseService";
 import { getUserMeals } from "@/services/mealService";
 import { Circle, Utensils, DollarSign, CalendarDays, TrendingUp, CreditCard } from "lucide-react";
-import { PG, userSummarie } from "@/types/pg";
+import { PG, userSummarie, Expense } from "@/types/pg";
 import {
   Card,
   CardContent,
@@ -32,7 +32,7 @@ export default function UserInfo() {
   const [loading, setLoading] = useState(true);
   const [totalMeals, setTotalMeals] = useState<number>(0);
   const [userStats, setUserStats] = useState<userSummarie | null>(null);
-  const [recentActivities, setRecentActivities] = useState<any[]>([]);
+  // const [recentActivities, setRecentActivities] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -70,9 +70,9 @@ export default function UserInfo() {
         // Fetch user summary if available
         if (pgSnapshot.exists()) {
           const pgData = pgSnapshot.data() as PG;
-          const currentMonth = pgData.currMonth?.[0];
+          const currentMonth = pgData.currMonth;
           if (currentMonth) {
-            const userSummary = currentMonth.summarie.find(s => s.name === user.name);
+            const userSummary = currentMonth?.userSummaries?.find(s => s.name === user.name);
             if (userSummary) {
               setUserStats(userSummary);
             }
@@ -83,21 +83,21 @@ export default function UserInfo() {
         const activities = [];
         
         // Add recent meals
-        if (userMeals && userMeals?.details.length > 0) {
-          const flattenedMeals = userMeals.flatMap(meal => 
-            meal.details.map(detail => ({
-              type: 'meal',
-              date: detail.date,
-              sessions: detail.sessions,
-            }))
-          );
+        if (userMeals && Array.isArray(userMeals.details) && userMeals.details.length > 0) {
+          const flattenedMeals = userMeals.details.map(detail => ({
+            type: 'meal',
+            date: detail.date,
+            sessions: detail.sessions,
+          }));
+        
           activities.push(...flattenedMeals);
         }
         
+        
         // Add recent expenses
         if (userExpenses && userExpenses.length > 0) {
-          const expenseActivities = userExpenses.map(expense => ({
-            type: 'expense',
+          const expenseActivities = userExpenses.map((expense : Expense) => ({
+            // type: 'expense',
             date: expense.date,
             amount: expense.totalMoney,
             details: expense.details
@@ -106,11 +106,11 @@ export default function UserInfo() {
         }
         
         // Sort by date (newest first) and limit to 5
-        const sortedActivities = activities.sort((a, b) => 
-          new Date(b.date).getTime() - new Date(a.date).getTime()
-        ).slice(0, 5);
+        // const sortedActivities = activities.sort((a, b) => 
+        //   new Date(b.date).getTime() - new Date(a.date).getTime()
+        // ).slice(0, 5);
         
-        setRecentActivities(sortedActivities);
+        // setRecentActivities(sortedActivities);
       } catch (error) {
         console.error("❌ Error fetching user data:", error);
       } finally {
@@ -129,18 +129,18 @@ export default function UserInfo() {
     return <LoadingScreen message="Redirecting to Sign In..." />;
   }
 
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return new Intl.DateTimeFormat('en-US', { 
-        month: 'short', 
-        day: 'numeric',
-        year: 'numeric' 
-      }).format(date);
-    } catch {
-      return dateString;
-    }
-  };
+  // const formatDate = (dateString: string) => {
+  //   try {
+  //     const date = new Date(dateString);
+  //     return new Intl.DateTimeFormat('en-US', { 
+  //       month: 'short', 
+  //       day: 'numeric',
+  //       year: 'numeric' 
+  //     }).format(date);
+  //   } catch {
+  //     return dateString;
+  //   }
+  // };
 
   const formatCurrency = (amount: number | undefined) => {
     if (amount === undefined) return "₹0";

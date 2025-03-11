@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getPGusers, ChangeAdmin } from "@/services/pgService";
-import { StoreUser } from "@/types";
+import { StoreUser } from "@/types/User";
 
 interface ChangeAdminProps {
   isOpen: boolean;

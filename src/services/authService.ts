@@ -1,8 +1,8 @@
 import { auth, googleProvider, db } from "../firebase";
-import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import { signInWithPopup } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import jwt from "jsonwebtoken";
-import { setCookie, destroyCookie } from "nookies";
+import { setCookie } from "nookies";
 import { StoreUser } from "@/types/User";
 
 const SECRET_KEY = "your-secret-key"; // Replace with a secure key (store in .env)

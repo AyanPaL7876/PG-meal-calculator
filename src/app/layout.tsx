@@ -3,10 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import { ThemeProvider } from "next-themes";
-// import Footer from "@/components/Footer";
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from "react-hot-toast";
 
-// Optional: Define fonts (if needed)
+// Define fonts
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -32,9 +31,9 @@ export default function RootLayout({
       <head />
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthProvider>{children}
+          <AuthProvider>
+            {children} {/* ❌ Removed ProtectedRoute */}
             <Toaster />
-            {/* <Footer/> */}
           </AuthProvider>
         </ThemeProvider>
       </body>

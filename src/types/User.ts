@@ -4,14 +4,14 @@ export interface StoreUser {
     email: string;
     photoURL?: string;
     mealStatus: boolean;
-    mealCount: number;
+    mealCount?: number;
     role: "user" | "admin";
     pgId?: string;
-    requestedId: RequestPgs[]
-    spent: number;
-    expense: number;
-    extra: number;
-    balance: number;
+    requestedId?: RequestPgs[]
+    spent?: number;
+    expense?: number;
+    extra?: number;
+    balance?: number;
     joinedAt?: Date;
   }
 

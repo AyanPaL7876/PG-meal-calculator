@@ -115,7 +115,9 @@ export default function HomePage() {
             <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
               <FaUtensils className="text-white text-xl" />
             </div>
-            <h1 className="text-2xl font-bold text-blue-400">PG-meal Calculator</h1>
+            <h1 className="text-2xl font-bold text-blue-400"
+            onClick={() => router.push("/")}
+            >PG-meal Calculator</h1>
           </motion.div>
 
           {/* Desktop Navigation */}
