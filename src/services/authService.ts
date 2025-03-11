@@ -1,13 +1,13 @@
 import { auth, googleProvider, db } from "../firebase";
 import { signInWithPopup } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import jwt from "jsonwebtoken";
-import { setCookie } from "nookies";
 import { StoreUser } from "@/types/User";
 
-const SECRET_KEY = "your-secret-key"; // Replace with a secure key (store in .env)
+type AuthErrorType = {
+  code: string;
+  message: string;
+};
 
-// 📌 Google Sign-In with Token Generation
 export const signInWithGoogle = async (): Promise<StoreUser | null> => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
@@ -21,7 +21,6 @@ export const signInWithGoogle = async (): Promise<StoreUser | null> => {
     let userData: StoreUser;
 
     if (!userSnap.exists()) {
-      // If user does not exist, create a new entry in Firestore
       userData = {
         uid: googleUser.uid,
         name: googleUser.displayName || "Unknown User",
@@ -36,27 +35,29 @@ export const signInWithGoogle = async (): Promise<StoreUser | null> => {
 
       await setDoc(userRef, userData);
     } else {
-      // Fetch existing user data
       userData = userSnap.data() as StoreUser;
     }
 
-    // 📌 Generate a JWT token
-    const token = jwt.sign(
-      { uid: userData.uid, role: userData.role, email: userData.email },
-      SECRET_KEY,
-      { expiresIn: "7d" } // Token valid for 7 days
-    );
-
-    // 📌 Store token in cookies
-    setCookie(null, "token", token, {
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
-      httpOnly: true, // Secure cookie
+    // 📌 Call Next.js API route to generate and store JWT token
+    await fetch("/api/auth/google", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uid: userData.uid,
+        role: userData.role,
+        email: userData.email,
+      }),
     });
 
     return userData;
-  } catch (error) {
-    console.error("Login error:", error);
+  } catch (error: unknown) {
+    const authError = error as AuthErrorType; // Type casting error
+
+    if (authError.code === "auth/popup-closed-by-user") {
+      console.warn("User closed the login popup before completing authentication.");
+    } else {
+      console.error("Login error:", authError.message);
+    }
     return null;
   }
 };

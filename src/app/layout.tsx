@@ -32,7 +32,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
-            {children} {/* ❌ Removed ProtectedRoute */}
+            {children} 
             <Toaster />
           </AuthProvider>
         </ThemeProvider>
