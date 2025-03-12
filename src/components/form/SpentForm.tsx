@@ -41,16 +41,19 @@ const SpentForm = ({ isOpen, onClose }: SpentFormProps) => {
       return;
     }
     
-    if (!totalMoney.trim() || Number(totalMoney)) {
+    if (!totalMoney.trim() || isNaN(parseFloat(totalMoney))) {
+      // Number(totalMoney) >= 0
       toast.error("Please enter a valid amount.");
+      console.error("Invalid amount entered.");
       return;
     }
     
     if (!selectedId) {
       toast.error("Please select a user.");
+      console.error("No user selected.");
       return;
     }
-
+    
     setSubmitting(true);
 
     try {
