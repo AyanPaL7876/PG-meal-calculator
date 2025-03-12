@@ -103,8 +103,44 @@ export default function MealTable({ data , currMonth}: MealTableProps) {
         </button>
       </CardContent>)}
 
+      <CardContent className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
+          <div className="bg-blue-800 p-3 flex items-center gap-2">
+            <Calendar size={20} className="text-white" />
+            <span className="font-medium text-white">Total Days</span>
+          </div>
+          <div className="p-4 text-center">
+            <span className="text-2xl font-bold text-white">{dates.length}</span>
+          </div>
+        </div>
+        
+        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
+          <div className="bg-purple-800 p-3 flex items-center gap-2">
+            <PlusCircle size={20} className="text-white" />
+            <span className="font-medium text-white">Total Extra Meals</span>
+          </div>
+          <div className="p-4 text-center">
+            <span className="text-2xl font-bold text-white">{totalExtra}</span>
+          </div>
+        </div>
+        
+        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
+          <div className="bg-green-800 p-3 flex items-center gap-2">
+            <FileBarChart size={20} className="text-white" />
+            <span className="font-medium text-white">Total Meals</span>
+          </div>
+          <div className="p-4 text-center">
+            <span className="text-2xl font-bold text-white">{totalMeals + totalExtra}</span>
+          </div>
+        </div>
+      </CardContent>
       
       <CardContent>
+      {mealSheet.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">
+            <p>No Meal data found.</p>
+          </div>
+        ) : (
         <div className="overflow-x-auto rounded-lg border border-slate-700">
           <Table>
             <TableHeader className="bg-slate-800">
@@ -177,38 +213,7 @@ export default function MealTable({ data , currMonth}: MealTableProps) {
             </TableBody>
           </Table>
         </div>
-      </CardContent>
-      
-      <CardContent className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
-          <div className="bg-blue-800 p-3 flex items-center gap-2">
-            <Calendar size={20} className="text-white" />
-            <span className="font-medium text-white">Total Days</span>
-          </div>
-          <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">{dates.length}</span>
-          </div>
-        </div>
-        
-        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
-          <div className="bg-purple-800 p-3 flex items-center gap-2">
-            <PlusCircle size={20} className="text-white" />
-            <span className="font-medium text-white">Total Extra Meals</span>
-          </div>
-          <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">{totalExtra}</span>
-          </div>
-        </div>
-        
-        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
-          <div className="bg-green-800 p-3 flex items-center gap-2">
-            <FileBarChart size={20} className="text-white" />
-            <span className="font-medium text-white">Total Meals</span>
-          </div>
-          <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">{totalMeals + totalExtra}</span>
-          </div>
-        </div>
+        )}
       </CardContent>
       
       <CardFooter className="text-sm text-center text-slate-400 italic border-t border-slate-700 pt-4 mt-2">

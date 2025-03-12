@@ -11,9 +11,10 @@ import {
 } from "lucide-react";
 import ExpenseForm from "@/components/form/ExpenseForm";
 import SpentForm from "@/components/form/SpentForm";
-import ChangeAdminPopup from "@/components/pg/ChangeAdmin";
+import ChangeAdminPopup from "@/components/form/ChangeAdmin";
 import { changeMealStatus } from "@/services/userService";
 import { toast } from "react-hot-toast";
+import { usePg } from "@/context/PgContext";
 
 const slideInOut = {
   initial: { opacity: 0, y: -10 },
@@ -40,6 +41,7 @@ const staggeredItem = {
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { pg } = usePg();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -297,7 +299,9 @@ export default function Navbar() {
               >
                 <FaUtensils className="text-white text-xl" />
               </motion.div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 text-transparent bg-clip-text">PG-meal Calculator</h1>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 text-transparent bg-clip-text">
+                {pg?.name}
+              </h1>
             </motion.div>
 
             {/* Desktop Navigation */}

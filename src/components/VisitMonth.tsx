@@ -98,19 +98,32 @@ function VisitMonth({currMonth}:{currMonth:boolean}) {
 
     return (
         <div className='pt-20 flex flex-col gap-10'>
-            <h2 className='text-2xl pb-2 text-center'>{pg?.currMonth?.month}</h2>
-            <button
-                onClick={handleClick}
-                className='bg-primary text-white py-2 px-4 rounded-md'
-            >
-                Calculate Summary
-            </button>
-            <button
-                onClick={handleMonth}
-                className='bg-primary text-white py-2 px-4 rounded-md'
-            >
-                Move to next month
-            </button>
+            <h2 className='text-2xl pb-2 text-center font-bold'>{pg?.currMonth?.month}</h2>
+            {pg?.currMonth &&  user?.role==="admin" && (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                    onClick={handleClick}
+                    className='bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 px-6 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 font-medium flex items-center justify-center gap-2'
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Calculate Summary
+                </button>
+                
+                <button
+                    onClick={handleMonth}
+                    className='bg-gradient-to-r from-purple-500 to-pink-600 text-white py-3 px-6 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 font-medium flex items-center justify-center gap-2'
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-5a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1z" clipRule="evenodd" />
+                        <path d="M10 6a1 1 0 011 1v2a1 1 0 11-2 0V7a1 1 0 011-1z" />
+                    </svg>
+                    Move to Next Month
+                </button>
+            </div>
+            )}
+            
             {user?.pgId && pg && currMonth &&(
                 <>
                     <SummaryTable data={pg.currMonth as Month} />

@@ -82,6 +82,11 @@ export default function SummaryTable({ data }: SummaryTableProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
+      {summaries.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">
+            <p>No summaries created.</p>
+          </div>
+        ) : (
         <div className="overflow-x-auto rounded-lg mb-6 border border-slate-700">
           <Table>
             <TableHeader className="bg-slate-800">
@@ -126,6 +131,7 @@ export default function SummaryTable({ data }: SummaryTableProps) {
             </TableBody>
           </Table>
         </div>
+        )}
       </CardContent>
 
       <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

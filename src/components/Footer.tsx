@@ -39,9 +39,9 @@ const Footer = () => {
                 <div className="text-center md:text-left col-span-2 md:col-span-1">
                   <h3 className="text-lg font-semibold text-gray-200 mb-4">Contact</h3>
                   <ul className="space-y-2 text-gray-400">
-                    <li>support@pgmeal.app</li>
-                    <li>+91 98765 43210</li>
-                    <li>Bangalore, India</li>
+                    <li>temp.ayan@gmail.com</li>
+                    <li>+91 90xxx xxx50</li>
+                    <li>Kolkata, India</li>
                   </ul>
                 </div>
               </div>

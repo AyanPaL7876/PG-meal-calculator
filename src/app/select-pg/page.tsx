@@ -16,6 +16,7 @@ function Page() {
 
   useEffect(() => {
     if (!user) {
+      router.refresh();
       router.push("/signin");
       return;
     }

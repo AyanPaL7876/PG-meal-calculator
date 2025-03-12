@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { usePg } from "@/context/PgContext";
 import {
   Dialog,
   DialogContent,
@@ -18,8 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getPGusers, ChangeAdmin } from "@/services/pgService";
-import { StoreUser } from "@/types/User";
+import { ChangeAdmin } from "@/services/pgService";
+// import { StoreUser } from "@/types/User";
 
 interface ChangeAdminProps {
   isOpen: boolean;
@@ -28,28 +29,8 @@ interface ChangeAdminProps {
 
 const ChangeAdminPopup = ({ isOpen, onClose }: ChangeAdminProps) => {
   const { user } = useAuth();
-  const [users, setUsers] = useState<StoreUser[]>([]);
+  const { pg, users } = usePg();
   const [newAdminId, setNewAdminId] = useState("");
-
-  useEffect(() => {
-    if (!user?.pgId) return;
-
-    const fetchUsers = async () => {
-      try {
-        const usersData = await getPGusers(user?.pgId as string);
-        if (usersData && usersData.length > 0) {
-          setUsers(usersData);
-        } else {
-          toast.error("Users not found.");
-        }
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        toast.error("Failed to load users.");
-      }
-    };
-
-    fetchUsers();
-  }, [user?.pgId]);
 
   const handleChangeAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +55,7 @@ const ChangeAdminPopup = ({ isOpen, onClose }: ChangeAdminProps) => {
       <DialogContent className="sm:max-w-md bg-gray-900 border border-gray-800 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-100">
-            Change Admin
+            Change Admin ({(pg?.name)?.toUpperCase()})
           </DialogTitle>
           <DialogDescription className="text-sm text-gray-400">
             Select a new admin to replace the current admin.

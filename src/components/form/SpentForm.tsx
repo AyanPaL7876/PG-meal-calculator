@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,8 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getPGusers } from "@/services/pgService";
-import { StoreUser } from "@/types/User";
+import { usePg } from "@/context/PgContext";
 
 interface SpentFormProps {
   isOpen: boolean;
@@ -28,31 +27,9 @@ interface SpentFormProps {
 
 const SpentForm = ({ isOpen, onClose }: SpentFormProps) => {
   const { user } = useAuth();
+  const { pg, users } = usePg();
   const [totalMoney, setTotalMoney] = useState("");
-  const [users, setUsers] = useState<StoreUser[]>([]);
   const [selectedId, setSelectedId] = useState("");
-
-  useEffect(() => {
-    if (!user?.pgId) return;
-
-    const fetchUsers = async () => {
-      try {
-        const usersData = await getPGusers(user?.pgId as string);
-        console.log("usersData", usersData);
-
-        if (usersData && usersData.length > 0) {
-          setUsers(usersData);
-        } else {
-          toast.error("Users Not Found.");
-        }
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        toast.error("Failed to load users.");
-      }
-    };
-
-    fetchUsers();
-  }, [user?.pgId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +83,7 @@ const SpentForm = ({ isOpen, onClose }: SpentFormProps) => {
       <DialogContent className="sm:max-w-md bg-gray-900 border border-gray-800 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-100">
-            Add Spent Money
+            Add Spent Money ({(pg?.name)?.toUpperCase()})
           </DialogTitle>
           <DialogDescription className="text-sm text-gray-400">
             Fill out the form below to add a spent money record.

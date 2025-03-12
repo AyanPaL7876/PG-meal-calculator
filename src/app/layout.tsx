@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "react-hot-toast";
+import { PgProvider } from "@/context/PgContext";
 
 // Define fonts
 const geistSans = Geist({
@@ -32,7 +33,9 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
-            {children} 
+            <PgProvider>
+              {children} 
+            </PgProvider>
             <Toaster />
           </AuthProvider>
         </ThemeProvider>

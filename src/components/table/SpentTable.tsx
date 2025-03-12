@@ -138,8 +138,47 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
           Spent Records
         </CardTitle>
       </CardHeader>
+
+      <CardContent className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
+          <div className="bg-blue-800 p-3 flex items-center gap-2">
+            <User size={20} className="text-white" />
+            <span className="font-medium text-white">Total Members</span>
+          </div>
+          <div className="p-4 text-center">
+            <span className="text-2xl font-bold text-white">{spentSheet.length}</span>
+          </div>
+        </div>
+        
+        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
+          <div className="bg-purple-800 p-3 flex items-center gap-2">
+            <Calendar size={20} className="text-white" />
+            <span className="font-medium text-white">Total Expense Entries</span>
+          </div>
+          <div className="p-4 text-center">
+            <span className="text-2xl font-bold text-white">
+              {spentSheet.reduce((acc, user) => acc + user.details.length, 0)}
+            </span>
+          </div>
+        </div>
+        
+        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
+          <div className="bg-green-800 p-3 flex items-center gap-2">
+            <DollarSign size={20} className="text-white" />
+            <span className="font-medium text-white">Total Spent</span>
+          </div>
+          <div className="p-4 text-center">
+            <span className="text-2xl font-bold text-white">₹{totalSpent.toFixed(2)}</span>
+          </div>
+        </div>
+      </CardContent>
       
       <CardContent>
+      {spentSheet.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">
+            <p>No Spent data found.</p>
+          </div>
+        ) : (
         <div className="overflow-x-auto rounded-lg border border-slate-700">
           <Table>
             <TableHeader className="bg-slate-800">
@@ -212,40 +251,7 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
             </TableBody>
           </Table>
         </div>
-      </CardContent>
-      
-      <CardContent className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
-          <div className="bg-blue-800 p-3 flex items-center gap-2">
-            <User size={20} className="text-white" />
-            <span className="font-medium text-white">Total Members</span>
-          </div>
-          <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">{spentSheet.length}</span>
-          </div>
-        </div>
-        
-        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
-          <div className="bg-purple-800 p-3 flex items-center gap-2">
-            <Calendar size={20} className="text-white" />
-            <span className="font-medium text-white">Total Expense Entries</span>
-          </div>
-          <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">
-              {spentSheet.reduce((acc, user) => acc + user.details.length, 0)}
-            </span>
-          </div>
-        </div>
-        
-        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
-          <div className="bg-green-800 p-3 flex items-center gap-2">
-            <DollarSign size={20} className="text-white" />
-            <span className="font-medium text-white">Total Spent</span>
-          </div>
-          <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">₹{totalSpent.toFixed(2)}</span>
-          </div>
-        </div>
+        )}
       </CardContent>
       
       <CardFooter className="text-sm text-center text-slate-400 italic border-t border-slate-700 pt-4 mt-2">

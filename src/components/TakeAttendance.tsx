@@ -7,14 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import LoadingScreen from "@/components/Loading";
-import { StoreUser } from "@/types/User";
 import { toast } from "react-hot-toast";
-import { getPGusers } from "@/services/pgService";
 import { markMeal } from "@/services/mealService";
+import { usePg } from "@/context/PgContext";
 
 const TakeAttendance = () => {
   const { user } = useAuth();
-  const [users, setUsers] = useState<StoreUser[]>([]);
+  const { pg, users, setUsers } = usePg();
   const [session, setSession] = useState<string>("Select session");
   const [date, setDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [loading, setLoading] = useState(true);
@@ -23,28 +22,9 @@ const TakeAttendance = () => {
 
 
   useEffect(() => {
-    if (!user?.pgId) return;
-
-    const fetchUsers = async () => {
-      try {
-        const usersData = await getPGusers(user?.pgId as string);
-        console.log("usersData", usersData);
-
-        if (usersData && usersData.length > 0) {
-          setUsers(usersData);
-        } else {
-          toast.error("Users Not Found.");
-        }
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        toast.error("Failed to load users.");
-      }
-    };
-
-    fetchUsers();
     setIsAdmin(user?.role === "admin");
     setLoading(false);
-  }, [user]);
+  }, [user, users]);
 
   const toggleAttendance = (id: string) => {
     setUsers((prev) => prev.map((u) => (u.uid === id ? { ...u, mealStatus: !u.mealStatus } : u)));
@@ -78,7 +58,7 @@ const TakeAttendance = () => {
     <div className="p-8 min-h-screen bg-gray-900 max-w-6xl mx-auto">
       <Card className="bg-slate-700/10 text-white mt-20">
         <CardHeader>
-          <CardTitle className="text-center text-3xl font-bold text-white">Attendance Sheet</CardTitle>
+          <CardTitle className="text-center text-3xl font-bold text-white">Attendance Sheet ({pg?.name.toUpperCase()})</CardTitle>
         </CardHeader>
         <CardContent>
             <div className="w-80 flex flex-col md:flex-row justify-evenly items-center gap-5 mb-6">

@@ -157,6 +157,38 @@ export default function ExpenseTable({ data, currMonth }: ExpenseTableProps) {
           Expense Records
         </CardTitle>
       </CardHeader>
+
+      <CardContent className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
+          <div className="bg-blue-800 p-3 flex items-center gap-2">
+            <Calendar size={20} className="text-white" />
+            <span className="font-medium text-white">Total Entries</span>
+          </div>
+          <div className="p-4 text-center">
+            <span className="text-2xl font-bold text-white">{expenses.length}</span>
+          </div>
+        </div>
+        
+        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
+          <div className="bg-purple-800 p-3 flex items-center gap-2">
+            <FileBarChart size={20} className="text-white" />
+            <span className="font-medium text-white">Unique Users</span>
+          </div>
+          <div className="p-4 text-center">
+            <span className="text-2xl font-bold text-white">{uniqueUsers}</span>
+          </div>
+        </div>
+        
+        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
+          <div className="bg-green-800 p-3 flex items-center gap-2">
+            <DollarSign size={20} className="text-white" />
+            <span className="font-medium text-white">Total Expenses</span>
+          </div>
+          <div className="p-4 text-center">
+            <span className="text-2xl font-bold text-white">{formatCurrency(totalExpense)}</span>
+          </div>
+        </div>
+      </CardContent>
       
       <CardContent>
         {expenses.length === 0 ? (
@@ -261,38 +293,6 @@ export default function ExpenseTable({ data, currMonth }: ExpenseTableProps) {
             </Table>
           </div>
         )}
-      </CardContent>
-      
-      <CardContent className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
-          <div className="bg-blue-800 p-3 flex items-center gap-2">
-            <Calendar size={20} className="text-white" />
-            <span className="font-medium text-white">Total Entries</span>
-          </div>
-          <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">{expenses.length}</span>
-          </div>
-        </div>
-        
-        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
-          <div className="bg-purple-800 p-3 flex items-center gap-2">
-            <FileBarChart size={20} className="text-white" />
-            <span className="font-medium text-white">Unique Users</span>
-          </div>
-          <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">{uniqueUsers}</span>
-          </div>
-        </div>
-        
-        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
-          <div className="bg-green-800 p-3 flex items-center gap-2">
-            <DollarSign size={20} className="text-white" />
-            <span className="font-medium text-white">Total Expenses</span>
-          </div>
-          <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">{formatCurrency(totalExpense)}</span>
-          </div>
-        </div>
       </CardContent>
       
       <CardFooter className="text-sm text-center text-slate-400 italic border-t border-slate-700 pt-4 mt-2">
