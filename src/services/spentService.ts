@@ -57,8 +57,10 @@ export const addSpent = async (pgId: string, userId: string, money: number) => {
     });
 
     console.log("✅ Expense added successfully!");
+    return true;
   } catch (error) {
     console.error("❌ Error adding expense:", error);
+    return false;
   }
 };
 

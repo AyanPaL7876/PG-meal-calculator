@@ -13,7 +13,13 @@ export const addExpense = async (pgId: string, userId: string, details: string, 
       }
 
       const pgData = pgSnap.data();
-      const currentExpense = pgData?.currMonth?.totalExpense || 0; // Get the current totalExpense or default to 0
+      
+      // Check if currMonth exists in pgData
+      if (!pgData.currMonth) {
+          return { success: false, message: "Current month data not initialized" };
+      }
+      
+      const currentExpense = pgData.currMonth.totalExpense || 0; // Get the current totalExpense or default to 0
 
       const userRef = doc(db, "users", userId);
       const userSnap = await getDoc(userRef);
@@ -21,16 +27,29 @@ export const addExpense = async (pgId: string, userId: string, details: string, 
           return { success: false, message: "User not found" };
       }
       const userData = userSnap.data();
-      await updateDoc(pgRef, {
-          "currMonth.expenseSheet": arrayUnion({
-              date: new Date().toISOString(),
-              userId,
-              userName : userData.name,
-              details,
-              totalMoney,
-          }),
-          "currMonth.totalExpense": currentExpense + totalMoney, // Add new expense to the existing total
-      });
+      
+      // Create new expense object
+      const newExpense = {
+          date: new Date().toISOString(),
+          userId,
+          userName: userData.name,
+          details,
+          totalMoney,
+      };
+      
+      // Check if expenseSheet array exists and handle appropriately
+      if (Array.isArray(pgData.currMonth.expenseSheet)) {
+          await updateDoc(pgRef, {
+              "currMonth.expenseSheet": arrayUnion(newExpense),
+              "currMonth.totalExpense": currentExpense + totalMoney,
+          });
+      } else {
+          // If expenseSheet doesn't exist or isn't an array, create a new array
+          await updateDoc(pgRef, {
+              "currMonth.expenseSheet": [newExpense],
+              "currMonth.totalExpense": currentExpense + totalMoney,
+          });
+      }
 
       await createOrUpdateSummary(pgId);
 
@@ -75,7 +94,12 @@ export const deleteExpense = async (pgId: string, date: string) => {
             return { success: false, message: "PG not found" };
         }
 
-        const currentExpenses = pgSnapshot.data()?.currMonth?.expenseSheet || [];
+        const pgData = pgSnapshot.data();
+        if (!pgData.currMonth || !Array.isArray(pgData.currMonth.expenseSheet)) {
+            return { success: false, message: "No expense data found" };
+        }
+
+        const currentExpenses = pgData.currMonth.expenseSheet;
         const expenseToDelete = currentExpenses.find((exp: Expense) => exp.date === date);
 
         if (!expenseToDelete) {
@@ -83,7 +107,7 @@ export const deleteExpense = async (pgId: string, date: string) => {
         }
 
         const updatedExpenses = currentExpenses.filter((exp: Expense) => exp.date !== date);
-        const totalExpense = pgSnapshot.data()?.currMonth?.totalExpense || 0;
+        const totalExpense = pgData.currMonth.totalExpense || 0;
 
         await updateDoc(pgRef, {
             "currMonth.expenseSheet": updatedExpenses,
@@ -109,7 +133,12 @@ export const getUserExpenses= async (pgId: string, userId: string) => {
             return null;
         }
 
-        const expenses = pgSnapshot.data()?.currMonth?.expenseSheet || [];
+        const pgData = pgSnapshot.data();
+        if (!pgData.currMonth || !Array.isArray(pgData.currMonth.expenseSheet)) {
+            return [];
+        }
+
+        const expenses = pgData.currMonth.expenseSheet;
         const userExpenses = expenses.filter((exp: Expense) => exp.userId === userId);
         return userExpenses;
     } catch (error) {

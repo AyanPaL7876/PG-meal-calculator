@@ -14,7 +14,6 @@ import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { addExpense } from "@/services/expenseService";
 import { Response } from "@/types/pg";
-import { usePg } from "@/context/PgContext";
 
 interface ExpenseFormProps {
   isOpen: boolean;
@@ -23,7 +22,6 @@ interface ExpenseFormProps {
 
 const ExpenseForm = ({ isOpen, onClose }: ExpenseFormProps) => {
   const { user } = useAuth();
-  const { pg } = usePg();
   const [details, setDetails] = useState("");
   const [totalMoney, setTotalMoney] = useState("");
 
@@ -42,7 +40,7 @@ const ExpenseForm = ({ isOpen, onClose }: ExpenseFormProps) => {
 
 
     try {
-      const res: Response = await addExpense(pg?.id as string, user.uid, details, parseFloat(totalMoney));
+      const res: Response = await addExpense(user?.pgId , user.uid, details, parseFloat(totalMoney));
 
       if (res?.success) {
         toast.success("Expense added successfully!");

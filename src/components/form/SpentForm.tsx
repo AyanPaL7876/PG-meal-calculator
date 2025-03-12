@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePg } from "@/context/PgContext";
+import { addSpent } from "@/services/spentService";
 
 interface SpentFormProps {
   isOpen: boolean;
@@ -49,29 +50,15 @@ const SpentForm = ({ isOpen, onClose }: SpentFormProps) => {
       return;
     }
 
-    const spentData = {
-      pgId: user.pgId,
-      userId: selectedId,
-      totalMoney: parseFloat(totalMoney),
-    };
-
     try {
-      const res = await fetch("/api/create/Spent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(spentData),
-      });
+      const data = await addSpent(user?.pgId, user.uid, parseFloat(totalMoney));
 
-      const data = await res.json();
-
-      if (data.success) {
+      if (data) {
         toast.success("Spent money added successfully!");
         setTotalMoney("");
         setSelectedId("");
         onClose();
-      } else {
-        toast.error(data.message);
-      }
+      } 
     } catch (error) {
       console.error("Error submitting spent money:", error);
       toast.error("Something went wrong. Please try again.");

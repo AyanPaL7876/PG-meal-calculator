@@ -3,10 +3,13 @@ import { signInWithGoogle } from "@/services/authService";
 import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 import { motion } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
+import { Home as HomeIcon} from "lucide-react";
 
 
 export default function HeroSection() {
   const router = useRouter();
+  const { user } = useAuth();
 
   const handleGoogleSignIn = async () => {
     try {
@@ -35,6 +38,7 @@ export default function HeroSection() {
             The all-in-one solution for managing meals, tracking expenses, and organizing shared living in paying guest accommodations.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            { !user ? (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -42,7 +46,16 @@ export default function HeroSection() {
               className="w-full sm:w-auto flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 rounded-lg text-white hover:bg-blue-500 transition-all duration-300"
             >
               <FcGoogle className="text-2xl" /> Continue with Google
+            </motion.button>) : (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push("/dashboard")}
+              className="w-full sm:w-auto flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 rounded-lg text-white hover:bg-blue-500 transition-all duration-300"
+            >
+              <HomeIcon className="text-2xl"/>  Go to Home page
             </motion.button>
+            )}
             <motion.a
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
