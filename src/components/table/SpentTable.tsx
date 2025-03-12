@@ -36,7 +36,7 @@ import { spent } from "@/types/pg";
 import { useAuth } from "@/context/AuthContext";
 
 interface SpentTableProps {
-  data : spent[];
+  data: spent[];
   currMonth: boolean;
 }
 
@@ -54,9 +54,23 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
       try {
         if (data) {
           setSpentSheet(data);
-          const uniqueDates = Array.from(
-            new Set(data.flatMap((user) => user.details.map((detail) => detail.date)))
-          ).sort();
+          
+          // Group dates by day, regardless of time
+          const uniqueDatesMap = new Map();
+          
+          data.forEach((user) => {
+            user.details.forEach((detail) => {
+              // Extract just the date part (without time) for grouping
+              const dateObj = new Date(detail.date);
+              const dateKey = dateObj.toISOString().split('T')[0];
+              
+              // Use a single date string for each day
+              uniqueDatesMap.set(dateKey, dateKey);
+            });
+          });
+          
+          // Convert to array and sort
+          const uniqueDates = Array.from(uniqueDatesMap.values()).sort();
           setDates(uniqueDates);
           
           // Calculate total spent
@@ -102,13 +116,17 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
         const newTotal = updatedSpentSheet.reduce((acc, user) => acc + user.totalMoney, 0);
         setTotalSpent(newTotal);
         
-        // Recalculate dates
-        const remainingDates = Array.from(
-          new Set(updatedSpentSheet.flatMap((user) => 
-            user.details.map(detail => detail.date)
-          ))
-        ).sort();
-        setDates(remainingDates);
+        // Recalculate dates (now using the normalized date keys)
+        const remainingDatesMap = new Map();
+        updatedSpentSheet.forEach(user => {
+          user.details.forEach(detail => {
+            const dateObj = new Date(detail.date);
+            const dateKey = dateObj.toISOString().split('T')[0];
+            remainingDatesMap.set(dateKey, dateKey);
+          });
+        });
+        
+        setDates(Array.from(remainingDatesMap.values()).sort());
       } else {
         toast.error("Failed to delete expense");
       }
@@ -118,6 +136,15 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
     } finally {
       setDeleteConfirm(null);
     }
+  };
+
+  // Helper function to find all expenses for a user on a specific date
+  const findExpensesForDate = (user: spent, dateKey: string) => {
+    return user.details.filter(detail => {
+      const detailDate = new Date(detail.date);
+      const detailDateKey = detailDate.toISOString().split('T')[0];
+      return detailDateKey === dateKey;
+    });
   };
 
   if (loading) {
@@ -213,18 +240,21 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
                     {u.userName ?? "Unknown User"}
                   </TableCell>
                   
-                  {dates.map((date) => {
-                    const expense = u.details.find((detail) => detail.date === date);
+                  {dates.map((dateKey) => {
+                    const expenses = findExpensesForDate(u, dateKey);
+                    const totalForDate = expenses.reduce((sum, exp) => sum + exp.money, 0);
+                    
                     return (
-                      <TableCell key={date} className="text-center p-2">
-                        {expense ? (
-                          <div className="flex flex-col items-center justify-center gap-1 bg-slate-800 p-2 rounded-lg">
+                      <TableCell key={dateKey} className="text-center p-2">
+                        {expenses.length > 0 && (
+                          <div className="flex flex-row items-center justify-center gap-1 bg-slate-800 p-2 rounded-lg">
                             <Badge variant="secondary" className="bg-green-700 text-white font-medium">
-                              ₹{expense.money.toFixed(2)}
+                              ₹{totalForDate.toFixed(2)}
                             </Badge>
                             
-                            {user?.role === "admin" && currMonth && (
+                            {user?.role === "admin" && currMonth && expenses.map((expense, idx) => (
                               <Button
+                                key={idx}
                                 variant="ghost"
                                 size="icon"
                                 className="h-6 w-6 mt-1 text-red-400 hover:text-red-500 hover:bg-slate-700"
@@ -234,9 +264,9 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
                               >
                                 <Trash2 size={14} />
                               </Button>
-                            )}
+                            ))}
                           </div>
-                        ) : null}
+                        )}
                       </TableCell>
                     );
                   })}
