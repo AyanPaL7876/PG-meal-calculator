@@ -226,7 +226,7 @@ export default function ExpenseTable({ data, currMonth }: ExpenseTableProps) {
                 {expenses.map((expense, index) => (
                   <TableRow key={`${expense.date}-${index}`} className="border-slate-700 hover:bg-slate-800">
                     <TableCell className="font-medium text-white sticky left-0 bg-slate-900 z-10">
-                      <Badge variant="outline" className="border-slate-600">
+                      <Badge variant="outline" className="border-slate-600 text-white">
                         {formatDate(expense.date)}
                       </Badge>
                     </TableCell>

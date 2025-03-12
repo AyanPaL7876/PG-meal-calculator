@@ -7,10 +7,11 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { StoreUser } from "@/types/User";
 import { destroyCookie } from "nookies"; // Import nookies for cookie management
 import { useRouter } from "next/navigation";
+import LoadingScreen from "@/components/Loading";
 
 interface AuthContextType {
   user: StoreUser | null;
-  loading: boolean; // Add loading state
+  loading: boolean;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -24,6 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 📌 Handle Google Login & Store User in Firestore
   const loginWithGoogle = async () => {
+    setLoading(true); // Set loading to true at the beginning of login process
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
@@ -34,9 +36,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userRef = doc(db, "users", googleUser.uid);
       const userSnap = await getDoc(userRef);
 
+      let userData: StoreUser;
+
       if (!userSnap.exists()) {
         // If user does not exist, store in Firestore
-        const newUser: StoreUser = {
+        userData = {
           uid: googleUser.uid,
           name: googleUser.displayName || "Unknown User",
           email: googleUser.email || "",
@@ -46,23 +50,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           pgId: "",
         };
 
-        await setDoc(userRef, newUser);
-        setUser(newUser);
+        await setDoc(userRef, userData);
       } else {
-        // If user exists, fetch and set data
-        setUser(userSnap.data() as StoreUser);
+        // If user exists, use existing data
+        userData = userSnap.data() as StoreUser;
       }
+      
+      // Explicitly set the user data here after Firestore operations complete
+      setUser(userData);
+      setLoading(false); // Set loading to false after user data is set
     } catch (error) {
       console.error("Login error:", error);
+      setLoading(false); // Set loading to false in case of error
     }
   };
 
   // 📌 Handle Logout
   const logout = async () => {
-    await signOut(auth);
-    destroyCookie(null, "token"); // Remove the authentication token
-    router.push("/signin"); // Redirect to the login page
-    setUser(null);
+    setLoading(true); // Set loading state during logout
+    try {
+      await signOut(auth);
+      destroyCookie(null, "token"); // Remove the authentication token
+      setUser(null); // Clear user state before navigation
+      router.push("/signin"); // Redirect to the login page
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setLoading(false); // Ensure loading is set to false when complete
+    }
   };
 
   // 📌 Listen for Auth Changes & Fetch Firestore User Data
@@ -74,10 +89,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (firebaseUser) {
           const userRef = doc(db, "users", firebaseUser.uid);
           const userSnap = await getDoc(userRef);
+          
           if (userSnap.exists()) {
             setUser(userSnap.data() as StoreUser);
           } else {
-            setUser(null);
+            // Handle case where user exists in Firebase Auth but not in Firestore
+            // This could happen if Firestore write failed during registration
+            const newUser: StoreUser = {
+              uid: firebaseUser.uid,
+              name: firebaseUser.displayName || "Unknown User",
+              email: firebaseUser.email || "",
+              photoURL: firebaseUser.photoURL || "",
+              mealStatus: false,
+              role: "user",
+              pgId: "",
+            };
+            
+            await setDoc(userRef, newUser);
+            setUser(newUser);
           }
         } else {
           setUser(null);
@@ -95,7 +124,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ user, loading, loginWithGoogle, logout }}>
-      {children}
+      {loading ? (
+        // You can replace this with a proper loading component
+        <LoadingScreen message="Checking user authentication..." />
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 }

@@ -31,27 +31,30 @@ const SpentForm = ({ isOpen, onClose }: SpentFormProps) => {
   const { pg, users } = usePg();
   const [totalMoney, setTotalMoney] = useState("");
   const [selectedId, setSelectedId] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     if (!user?.pgId) {
       toast.error("PG ID not found. Please log in again.");
       return;
     }
-
-    if (!totalMoney.trim() || Number(totalMoney) <= 0) {
+    
+    if (!totalMoney.trim() || Number(totalMoney)) {
       toast.error("Please enter a valid amount.");
       return;
     }
-
+    
     if (!selectedId) {
       toast.error("Please select a user.");
       return;
     }
 
+    setSubmitting(true);
+
     try {
-      const data = await addSpent(user?.pgId, user.uid, parseFloat(totalMoney));
+      const data = await addSpent(user?.pgId, selectedId, parseFloat(totalMoney));
 
       if (data) {
         toast.success("Spent money added successfully!");
@@ -63,6 +66,8 @@ const SpentForm = ({ isOpen, onClose }: SpentFormProps) => {
       console.error("Error submitting spent money:", error);
       toast.error("Something went wrong. Please try again.");
     }
+
+    setSubmitting(false);
   };
 
   return (
@@ -120,8 +125,9 @@ const SpentForm = ({ isOpen, onClose }: SpentFormProps) => {
             >
               Cancel
             </Button>
-            <Button type="submit" className="bg-blue-600 text-gray-100 hover:bg-blue-700">
-              Submit
+            <Button type="submit" 
+            className="bg-blue-600 text-gray-100 hover:bg-blue-700">
+              {submitting ? "Adding..." : "Submit"}
             </Button>
           </div>
         </form>

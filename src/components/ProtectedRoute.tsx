@@ -25,6 +25,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       // Redirect unauthenticated users from protected routes
       if (!user && protectedRoutes.some(route => pathname.startsWith(route))) {
         toast.error("Unauthorized access. Please sign in.");
+        router.refresh(); // Refresh the page to avoid showing the protected content
         router.push("/signin");
         return;
       }

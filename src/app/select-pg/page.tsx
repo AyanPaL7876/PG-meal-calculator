@@ -15,11 +15,6 @@ function Page() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      router.refresh();
-      router.push("/signin");
-      return;
-    }
     if (user?.pgId !== "") {
       router.push("/dashboard");
       return;

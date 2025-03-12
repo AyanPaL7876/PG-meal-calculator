@@ -24,6 +24,7 @@ const ExpenseForm = ({ isOpen, onClose }: ExpenseFormProps) => {
   const { user } = useAuth();
   const [details, setDetails] = useState("");
   const [totalMoney, setTotalMoney] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +39,7 @@ const ExpenseForm = ({ isOpen, onClose }: ExpenseFormProps) => {
       return;
     }
 
-
+    setSubmitting(true);
     try {
       const res: Response = await addExpense(user?.pgId , user.uid, details, parseFloat(totalMoney));
 
@@ -54,6 +55,8 @@ const ExpenseForm = ({ isOpen, onClose }: ExpenseFormProps) => {
       console.error("Error submitting expense:", error);
       toast.error("Something went wrong. Please try again.");
     }
+
+    setSubmitting(false);
   };
 
   return (
@@ -104,7 +107,7 @@ const ExpenseForm = ({ isOpen, onClose }: ExpenseFormProps) => {
               type="submit"
               className="bg-blue-600 text-gray-100 hover:bg-blue-700 focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-gray-900"
             >
-              Submit Expense
+              {submitting ? "Adding..." : "Add Expense"}
             </Button>
           </div>
         </form>
