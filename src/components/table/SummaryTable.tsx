@@ -104,7 +104,7 @@ export default function SummaryTable({ data }: SummaryTableProps) {
                 <TableRow key={user.name} className="border-slate-700 hover:bg-slate-800">
                   <TableCell className="font-medium text-white">{user.name}</TableCell>
                   <TableCell className="text-center font-medium text-white">
-                    {user.userTotalMeal.toFixed(2)}
+                    {user.userTotalMeal}
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge variant="secondary" className="bg-slate-700 text-white font-medium">

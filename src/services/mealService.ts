@@ -59,6 +59,9 @@ export const markMeal = async (pgId: string, userId: string, date: string, newSe
 
     if (mealAdded) {
       pg.currMonth.totalMeal = totalMeal + 1;
+      if(!user.mealCount){
+        user.mealCount = 0;
+      }
       user.mealCount += 1;
     }
 
@@ -102,6 +105,7 @@ export const getUserMeals = async (pgId: string, userId: string) => {
   try {
     const pgRef = doc(db, "pgs", pgId);
     const pgSnap = await getDoc(pgRef);
+    console.log("🍽️ PG Snap:", pgSnap.exists(), pgId, userId);
 
     if (!pgSnap.exists()) {
       throw new Error(`PG not found: ${pgId}`);
