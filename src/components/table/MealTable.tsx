@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 import { format, parseISO } from "date-fns";
 import { Calendar, User, PlusCircle, FileBarChart } from 'lucide-react';
+import { useRouter } from "next/navigation";
 
 interface MealTableProps {
   data: mealData[];
@@ -34,6 +35,7 @@ export default function MealTable({ data , currMonth}: MealTableProps) {
   const [totalMeals, setTotalMeals] = useState(0);
   const [totalExtra, setTotalExtra] = useState(0);
   const {user} = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchMeals() {
@@ -98,7 +100,9 @@ export default function MealTable({ data , currMonth}: MealTableProps) {
       {/* edit button */}
       {currMonth && user?.role==="admin" && (
       <CardContent className="flex justify-end">
-        <button className="bg-blue-700 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition-all duration-200">
+        <button 
+        onClick={()=> router.push("/dashboard/editmeal")}
+        className="bg-blue-700 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition-all duration-200">
           Edit
         </button>
       </CardContent>)}

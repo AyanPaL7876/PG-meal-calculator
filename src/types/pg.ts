@@ -1,3 +1,5 @@
+import { StoreUser } from "./user";
+
 export interface userSummarie {
     name : string,
     userTotalMeal: number,
@@ -6,6 +8,10 @@ export interface userSummarie {
     balance: number,
     balanceWithAnti: number,
 }
+
+export interface UserMealStatus extends StoreUser {
+    selectedForMeal: boolean;
+  }
 
 export interface Meal{
     date: string, 

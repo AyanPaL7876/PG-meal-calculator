@@ -94,7 +94,7 @@ const SpentForm = ({ isOpen, onClose }: SpentFormProps) => {
               <SelectTrigger className="bg-gray-800 border-gray-700 text-gray-100">
                 <SelectValue placeholder="Select a user" />
               </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700">
+              <SelectContent className="bg-gray-800 border-gray-700 max-h-[30vh]">
                 {users.map(({ name, uid }) => (
                   <SelectItem
                     key={uid}

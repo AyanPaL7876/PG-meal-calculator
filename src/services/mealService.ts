@@ -117,3 +117,71 @@ export const getUserMeals = async (pgId: string, userId: string) => {
     return null;
   }
 }
+
+export const removeMealMark = async (pgId: string, userId: string, date: string, sessionToRemove: string) => {
+  if (!pgId || !userId || !date || !sessionToRemove) {
+    throw new Error("Invalid meal data. Please provide pgId, userId, date, and session to remove.");
+  }
+
+  try {
+    const pgRef = doc(db, "pgs", pgId);
+    const pgSnap = await getDoc(pgRef);
+
+    if (!pgSnap.exists()) {
+      throw new Error(`PG not found: ${pgId}`);
+    }
+
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+    const user = userSnap.data();
+
+    if (!user) {
+      throw new Error(`User not found: ${userId}`);
+    }
+
+    const pg = pgSnap.data();
+    const mealSheet: mealData[] = pg?.currMonth?.mealSheet || [];
+    let mealRemoved = false;
+
+    const existingEntryIndex = mealSheet.findIndex((entry) => entry.userId === userId);
+
+    if (existingEntryIndex !== -1) {
+      const existingEntry = mealSheet[existingEntryIndex];
+      const dateIndex = existingEntry.details.findIndex((detail) => detail.date === date);
+
+      if (dateIndex !== -1) {
+        const existingSessions = existingEntry.details[dateIndex].sessions;
+        const sessionIndex = existingSessions.indexOf(sessionToRemove);
+
+        if (sessionIndex !== -1) {
+          existingSessions.splice(sessionIndex, 1);
+          mealRemoved = true;
+
+          if (existingSessions.length === 0) {
+            existingEntry.details.splice(dateIndex, 1);
+          }
+        }
+
+        if (existingEntry.details.length === 0) {
+          mealSheet.splice(existingEntryIndex, 1);
+        }
+      }
+    }
+
+    if (mealRemoved) {
+      pg.currMonth.totalMeal = Math.max(0, pg.currMonth.totalMeal - 1);
+      user.mealCount = Math.max(0, user.mealCount - 1);
+    }
+
+    await updateDoc(pgRef, { "currMonth.mealSheet": mealSheet, "currMonth.totalMeal": pg.currMonth.totalMeal });
+    await updateDoc(userRef, { mealCount: user.mealCount });
+
+    await createOrUpdateSummary(pgId);
+
+    console.log("✅ Meal mark removed successfully!");
+    return { success: true, message: "Meal mark removed successfully!" };
+  } catch (error) {
+    console.error("❌ Error removing meal mark:", error);
+    return { success: false, message: "Failed to remove meal mark" };
+  }
+};

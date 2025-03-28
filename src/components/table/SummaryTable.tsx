@@ -104,26 +104,26 @@ export default function SummaryTable({ data }: SummaryTableProps) {
                 <TableRow key={user.name} className="border-slate-700 hover:bg-slate-800">
                   <TableCell className="font-medium text-white">{user.name}</TableCell>
                   <TableCell className="text-center font-medium text-white">
-                    {user.userTotalMeal}
+                    {user.userTotalMeal.toFixed(2)}
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge variant="secondary" className="bg-slate-700 text-white font-medium">
-                      ₹{user.userTotalSpent}
+                      ₹{user.userTotalSpent.toFixed(2)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge variant="secondary" className="bg-slate-700 text-white font-medium">
-                      ₹{user.userTotalExpense}
+                      ₹{user.userTotalExpense.toFixed(2)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge className={user.balance < 0 ? "bg-red-600 text-white" : "bg-green-600 text-white"}>
-                      ₹{user.balance}
+                      ₹{user.balance.toFixed(2)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge className={user.balanceWithAnti < 0 ? "bg-red-600 text-white" : "bg-green-600 text-white"}>
-                      ₹{user.balanceWithAnti}
+                      ₹{user.balanceWithAnti.toFixed(2)}
                     </Badge>
                   </TableCell>
                 </TableRow>
@@ -141,7 +141,7 @@ export default function SummaryTable({ data }: SummaryTableProps) {
             <span className="font-medium text-white">Meal Charge</span>
           </div>
           <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">₹{mealCharge}</span>
+            <span className="text-2xl font-bold text-white">₹{mealCharge.toFixed(2)}</span>
           </div>
         </div>
         
@@ -151,7 +151,7 @@ export default function SummaryTable({ data }: SummaryTableProps) {
             <span className="font-medium text-white">Masi Charge</span>
           </div>
           <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">₹{masiCharge}</span>
+            <span className="text-2xl font-bold text-white">₹{masiCharge.toFixed(2)}</span>
           </div>
         </div>
         
@@ -174,7 +174,7 @@ export default function SummaryTable({ data }: SummaryTableProps) {
             <span className="font-medium text-white">Total Expenses</span>
           </div>
           <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">₹{calculator.totalExpenses}</span>
+            <span className="text-2xl font-bold text-white">₹{calculator.totalExpenses.toFixed(2)}</span>
           </div>
         </div>
         
@@ -184,7 +184,7 @@ export default function SummaryTable({ data }: SummaryTableProps) {
             <span className="font-medium text-white">Total Spent</span>
           </div>
           <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">₹{calculator.totalSpent}</span>
+            <span className="text-2xl font-bold text-white">₹{calculator.totalSpent.toFixed(2)}</span>
           </div>
         </div>
 
@@ -194,7 +194,7 @@ export default function SummaryTable({ data }: SummaryTableProps) {
             <span className="font-medium text-white">Balance</span>
           </div>
           <div className="p-4 text-center">
-            <span className={`text-2xl font-bold ${(calculator.totalSpent)>(calculator.totalExpenses)?"text-white": "text-red-500"}`}>₹{(calculator.totalSpent)-(calculator.totalExpenses)}</span>
+            <span className={`text-2xl font-bold ${(calculator.totalSpent.toFixed(2))>(calculator.totalExpenses.toFixed(2))?"text-white": "text-red-500"}`}>₹{((calculator.totalSpent)-(calculator.totalExpenses)).toFixed(2)}</span>
           </div>
         </div>
       </CardContent>

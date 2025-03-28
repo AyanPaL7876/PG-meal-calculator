@@ -245,9 +245,9 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
                     const totalForDate = expenses.reduce((sum, exp) => sum + exp.money, 0);
                     
                     return (
-                      <TableCell key={dateKey} className="text-center p-2">
+                      <TableCell key={dateKey} className="text-center p-1">
                         {expenses.length > 0 && (
-                          <div className="flex flex-row items-center justify-center gap-1 bg-slate-800 p-2 rounded-lg">
+                          <div className="flex flex-row items-center justify-center gap-1 rounded-lg">
                             <Badge variant="secondary" className="bg-green-700 text-white font-medium">
                               ₹{totalForDate.toFixed(2)}
                             </Badge>
