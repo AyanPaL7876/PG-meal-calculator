@@ -1,5 +1,14 @@
-import { StoreUser } from "./user";
+import { StoreUser } from "./User";
 
+
+export interface MealSheetEntry {
+    userId: string;
+    details: {
+      date: string;
+      sessions: string[];
+    }[];
+  }
+  
 export interface userSummarie {
     name : string,
     userTotalMeal: number,

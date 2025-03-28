@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,8 +10,12 @@ import LoadingScreen from "@/components/Loading";
 import { toast } from "react-hot-toast";
 import { usePg } from "@/context/PgContext";
 import { getMealSheet, markMeal, removeMealMark } from "@/services/mealService";
-import { UserMealStatus } from "@/types/pg";
+import { MealSheetEntry } from "@/types/pg";
+import { StoreUser } from "@/types/User";
 
+interface UserWithMealStatus extends StoreUser {
+  selectedForMeal: boolean;
+}
 
 const UpdateMealAttendance = () => {
   const { user } = useAuth();
@@ -19,13 +23,12 @@ const UpdateMealAttendance = () => {
   const { pg, users } = usePg();
   const [session, setSession] = useState<string>("Select session");
   const [date, setDate] = useState<string>(new Date().toISOString().split("T")[0]);
-  const [loading, setLoading] = useState(false);
-  const [userMealStatuses, setUserMealStatuses] = useState<UserMealStatus[]>([]);
-  // const [existingMeals, setExistingMeals] = useState<mealData[]>([]);
-  const [dataFetched, setDataFetched] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [userMealStatuses, setUserMealStatuses] = useState<UserWithMealStatus[]>([]);
+  const [dataFetched, setDataFetched] = useState<boolean>(false);
 
-  // Fetch meal data when date and session are selected
-  const fetchMealData = async () => {
+  // Memoized fetch meal data function to prevent unnecessary re-renders
+  const fetchMealData = useCallback(async () => {
     // Validate PG, date, and session selection
     if (!pgId) {
       toast.error("Please select a PG");
@@ -43,12 +46,14 @@ const UpdateMealAttendance = () => {
       const mealSheet = await getMealSheet(pgId, true);
       
       // Prepare user statuses based on existing meal data
-      const preparedUserStatuses = users.map(user => {
-        // Check if this user has a meal marked for the selected date and session
-        const userMeal = mealSheet.find(meal => meal.userId === user.uid);
+      const preparedUserStatuses: UserWithMealStatus[] = users.map(user => {
+        // Safely find user's meal entry
+        const userMeal = mealSheet?.find((meal: MealSheetEntry) => meal.userId === user.uid);
+        
+        // Check if the user has a meal marked for the selected date and session
         const isMarked = userMeal?.details.some(
           detail => detail.date === date && detail.sessions.includes(session)
-        );
+        ) || false;
 
         return {
           ...user,
@@ -56,7 +61,6 @@ const UpdateMealAttendance = () => {
         };
       });
 
-      // setExistingMeals(mealSheet);
       setUserMealStatuses(preparedUserStatuses);
       setDataFetched(true);
       setLoading(false);
@@ -65,10 +69,10 @@ const UpdateMealAttendance = () => {
       toast.error("Failed to fetch meal data");
       setLoading(false);
     }
-  };
+  }, [pgId, session, date, users]);
 
   // Toggle meal status for a specific user
-  const toggleUserMeal = (userId: string) => {
+  const toggleUserMeal = useCallback((userId: string) => {
     setUserMealStatuses(prev => 
       prev.map(user => 
         user.uid === userId 
@@ -76,10 +80,10 @@ const UpdateMealAttendance = () => {
           : user
       )
     );
-  };
+  }, []);
 
   // Submit updated meal attendance
-  const submitAttendance = async () => {
+  const submitAttendance = useCallback(async () => {
     if (!pgId) {
       toast.error("Please select a PG");
       return;
@@ -93,7 +97,6 @@ const UpdateMealAttendance = () => {
     const selectedUsers = userMealStatuses.filter(u => u.selectedForMeal);
     
     if (selectedUsers.length === 0) {
-      console.log(users);
       for(const user of users){
         const res = await removeMealMark(pgId, user.uid, date, session);
         if (res.success) {
@@ -121,15 +124,15 @@ const UpdateMealAttendance = () => {
       console.error("Error submitting meals:", error);
       toast.error("Failed to submit meal attendance");
     }
-  };
+  }, [pgId, session, date, users, userMealStatuses, fetchMealData]);
 
   // Reset form
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setSession("Select session");
     setDate(new Date().toISOString().split("T")[0]);
     setUserMealStatuses([]);
     setDataFetched(false);
-  };
+  }, []);
 
   // Render
   if (user?.role !== "admin") return <div>Access Denied</div>;
@@ -213,7 +216,7 @@ const UpdateMealAttendance = () => {
                   {userMealStatuses.map((user) => (
                     <TableRow key={user.uid}>
                       <TableCell>{user.name}</TableCell>
-                      <TableCell>{user.mealCount}</TableCell>
+                      <TableCell>{user.mealCount || 0}</TableCell>
                       <TableCell>
                         <Button
                           className={`${
