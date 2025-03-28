@@ -20,15 +20,37 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 import { format, parseISO } from "date-fns";
-import { Calendar, User, PlusCircle, FileBarChart } from 'lucide-react';
+import { 
+  Calendar, 
+  User, 
+  PlusCircle, 
+  FileBarChart, 
+  CupSoda,  // for Breakfast
+  Utensils, // for Lunch
+  Sunset    // for Dinner
+} from 'lucide-react';
 import { useRouter } from "next/navigation";
+
+// Meal type to icon mapping
+const mealIcons = {
+  'Breakfast': CupSoda,
+  'Lunch': Utensils,
+  'Dinner': Sunset
+};
+
+// Meal type to color mapping
+const mealColors = {
+  'Breakfast': 'bg-orange-400',
+  'Lunch': 'bg-blue-900',
+  'Dinner': 'bg-purple-900'
+};
 
 interface MealTableProps {
   data: mealData[];
   currMonth: boolean;
 }
 
-export default function MealTable({ data , currMonth}: MealTableProps) {
+export default function MealTable({ data, currMonth }: MealTableProps) {
   const [mealSheet, setMealSheet] = useState<mealData[]>([]);
   const [dates, setDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -186,11 +208,21 @@ export default function MealTable({ data , currMonth}: MealTableProps) {
                       <TableCell key={date} className="text-center">
                         {entry && entry.sessions.length > 0 ? (
                           <div className="flex flex-wrap gap-1 justify-center">
-                            {entry.sessions.map((session, idx) => (
-                              <Badge key={idx} variant="secondary" className="bg-slate-700 text-white">
-                                {session}
-                              </Badge>
-                            ))}
+                            {entry.sessions.map((session, idx) => {
+                              // Get the corresponding icon and color for the meal type
+                              const MealIcon = mealIcons[session as keyof typeof mealIcons] || Utensils;
+                              const mealColor = mealColors[session as keyof typeof mealColors] || 'bg-gray-600';
+                              
+                              return (
+                                <Badge 
+                                  key={idx} 
+                                  variant="secondary" 
+                                  className={`${mealColor} text-white flex items-center gap-1 px-1 py-1 rounded-full`}
+                                >
+                                  <MealIcon size={14} />
+                                </Badge>
+                              );
+                            })}
                           </div>
                         ) : (
                           <span className="text-slate-500">-</span>

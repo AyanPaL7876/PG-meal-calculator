@@ -97,19 +97,13 @@ const UpdateMealAttendance = () => {
     const selectedUsers = userMealStatuses.filter(u => u.selectedForMeal);
     
     if (selectedUsers.length === 0) {
-      for(const user of users){
-        const res = await removeMealMark(pgId, user.uid, date, session);
-        if (res.success) {
-          toast.success(`${user.name}'s meal updated successfully`);
-        } else {
-          toast.error(`Failed to update ${user.name}'s meal`);
-        }
-      }
-      toast.error("No users selected");
+      markAllOff();
+      toast.error(`marked off all users`);
       return;
     }
 
     try {
+      markAllOff();
       for (const user of selectedUsers) {
         const res = await markMeal(pgId, user.uid, date, session);
         if (res.success) {
@@ -125,6 +119,18 @@ const UpdateMealAttendance = () => {
       toast.error("Failed to submit meal attendance");
     }
   }, [pgId, session, date, users, userMealStatuses, fetchMealData]);
+
+  // mark all off
+  const markAllOff = async() =>{
+    for(const user of users){
+      const res = await removeMealMark(pgId as string, user.uid, date, session);
+      if (res.success) {
+        toast.success(`${user.name}'s meal updated successfully`);
+      } else {
+        toast.error(`Failed to update ${user.name}'s meal`);
+      }
+    }
+  }
 
   // Reset form
   const resetForm = useCallback(() => {
