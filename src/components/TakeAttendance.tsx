@@ -10,9 +10,11 @@ import LoadingScreen from "@/components/Loading";
 import { toast } from "react-hot-toast";
 import { markMeal } from "@/services/mealService";
 import { usePg } from "@/context/PgContext";
+import { createOrUpdateSummary } from "@/services/summaryServices";
 
 const TakeAttendance = () => {
   const { user } = useAuth();
+  const pgId = user?.pgId;
   const { pg, users, setUsers } = usePg();
   const [session, setSession] = useState<string>("Select session");
   const [date, setDate] = useState<string>(new Date().toISOString().split("T")[0]);
@@ -49,7 +51,7 @@ const TakeAttendance = () => {
         alert(`${user.name}'s Failed to mark meal`);
       }
     }
-    setMealMarking(false);
+    await createOrUpdateSummary(pgId as string);
 }
 
   if (loading || user?.role !== "admin") return <LoadingScreen message="Loading data..." />;

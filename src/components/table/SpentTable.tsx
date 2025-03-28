@@ -206,7 +206,7 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
             <p>No Spent data found.</p>
           </div>
         ) : (
-        <div className="overflow-x-auto rounded-lg border border-slate-700">
+        <div className="overflow-x-auto overflow-y-auto max-h-[70vh] rounded-lg border border-slate-700">
           <Table>
             <TableHeader className="bg-slate-800">
               <TableRow>

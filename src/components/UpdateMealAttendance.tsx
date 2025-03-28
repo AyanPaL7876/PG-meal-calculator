@@ -12,6 +12,7 @@ import { usePg } from "@/context/PgContext";
 import { getMealSheet, markMeal, removeMealMark } from "@/services/mealService";
 import { MealSheetEntry } from "@/types/pg";
 import { StoreUser } from "@/types/User";
+import { createOrUpdateSummary } from "@/services/summaryServices";
 
 interface UserWithMealStatus extends StoreUser {
   selectedForMeal: boolean;
@@ -24,6 +25,7 @@ const UpdateMealAttendance = () => {
   const [session, setSession] = useState<string>("Select session");
   const [date, setDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [update, setUpdate] = useState<boolean>(false);
   const [userMealStatuses, setUserMealStatuses] = useState<UserWithMealStatus[]>([]);
   const [dataFetched, setDataFetched] = useState<boolean>(false);
 
@@ -94,6 +96,7 @@ const UpdateMealAttendance = () => {
       return;
     }
 
+    setUpdate(true);
     const selectedUsers = userMealStatuses.filter(u => u.selectedForMeal);
     
     if (selectedUsers.length === 0) {
@@ -103,17 +106,20 @@ const UpdateMealAttendance = () => {
     }
 
     try {
-      markAllOff();
+      await markAllOff();
       for (const user of selectedUsers) {
         const res = await markMeal(pgId, user.uid, date, session);
         if (res.success) {
-          toast.success(`${user.name}'s meal updated successfully`);
+          console.log(`${user.name}'s meal updated successfully`);
         } else {
           toast.error(`Failed to update ${user.name}'s meal`);
         }
       }
+      toast.success(`update successfully`);
       // Refresh data after submission
+      await createOrUpdateSummary(pgId);
       fetchMealData();
+      setUpdate(false);
     } catch (error) {
       console.error("Error submitting meals:", error);
       toast.error("Failed to submit meal attendance");
@@ -125,11 +131,12 @@ const UpdateMealAttendance = () => {
     for(const user of users){
       const res = await removeMealMark(pgId as string, user.uid, date, session);
       if (res.success) {
-        toast.success(`${user.name}'s meal updated successfully`);
+        console.log(`${user.name}'s meal updated successfully`);
       } else {
         toast.error(`Failed to update ${user.name}'s meal`);
       }
     }
+    toast.success(`off successfully`);
   }
 
   // Reset form
@@ -246,7 +253,7 @@ const UpdateMealAttendance = () => {
                   className="bg-blue-500 hover:bg-blue-700"
                   onClick={submitAttendance}
                 >
-                  Submit Attendance
+                  {update ? "Updating..." : "Submit Attendance"}
                 </Button>
               </div>
             </>

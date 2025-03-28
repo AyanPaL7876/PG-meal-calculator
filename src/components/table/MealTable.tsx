@@ -167,9 +167,9 @@ export default function MealTable({ data, currMonth }: MealTableProps) {
             <p>No Meal data found.</p>
           </div>
         ) : (
-        <div className="overflow-x-auto rounded-lg border border-slate-700">
+          <div className="overflow-x-auto overflow-y-auto max-h-[70vh] rounded-lg border border-slate-700">
           <Table>
-            <TableHeader className="bg-slate-800">
+            <TableHeader className="bg-slate-800 sticky top-0 z-20">
               <TableRow>
                 <TableHead className="font-semibold text-white sticky left-0 bg-slate-800 z-10">
                   <div className="flex items-center gap-2">
@@ -209,10 +209,8 @@ export default function MealTable({ data, currMonth }: MealTableProps) {
                         {entry && entry.sessions.length > 0 ? (
                           <div className="flex flex-wrap gap-1 justify-center">
                             {entry.sessions.map((session, idx) => {
-                              // Get the corresponding icon and color for the meal type
                               const MealIcon = mealIcons[session as keyof typeof mealIcons] || Utensils;
                               const mealColor = mealColors[session as keyof typeof mealColors] || 'bg-gray-600';
-                              
                               return (
                                 <Badge 
                                   key={idx} 
@@ -249,6 +247,7 @@ export default function MealTable({ data, currMonth }: MealTableProps) {
             </TableBody>
           </Table>
         </div>
+        
         )}
       </CardContent>
       

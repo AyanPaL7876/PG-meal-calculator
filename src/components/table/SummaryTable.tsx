@@ -74,7 +74,7 @@ export default function SummaryTable({ data }: SummaryTableProps) {
   }
 
   return (
-    <Card className="max-w-7xl w-full mx-auto bg-slate-900 text-white p-2">
+    <Card className="md:max-w-7xl w-full mx-auto bg-slate-900 text-white p-2">
       <CardHeader className="pb-2">
         <CardTitle className="text-2xl font-bold text-white flex items-center gap-2">
           <Receipt size={24} />
@@ -87,7 +87,7 @@ export default function SummaryTable({ data }: SummaryTableProps) {
             <p>No summaries created.</p>
           </div>
         ) : (
-        <div className="overflow-x-auto rounded-lg mb-6 border border-slate-700">
+        <div className="overflow-x-auto overflow-y-auto max-h-[70vh] rounded-lg border border-slate-700">
           <Table>
             <TableHeader className="bg-slate-800">
               <TableRow>

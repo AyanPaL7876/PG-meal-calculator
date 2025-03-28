@@ -53,7 +53,7 @@ export const createOrUpdateSummary = async (pgId: string) => {
       if (!userData) continue;
 
       const userMeals = userData.mealCount || 0;
-      console.log(`📊 User ${user} Meals: ${userMeals}`);
+      // console.log(`📊 User ${user} Meals: ${userMeals}`);
 
       totalMeal += userMeals;
       highestMeal = Math.max(highestMeal, userMeals);
@@ -104,7 +104,7 @@ export const createOrUpdateSummary = async (pgId: string) => {
 
       let userMeal = userMeals >= baseMeal ? userMeals : baseMeal;
       userMeal = userMeals === 0 ? 0 : userMeal + extraMeal;
-      console.log(`🍽️ User ${user} Final Meals: ${userMeal}`);
+      // console.log(`🍽️ User ${user} Final Meals: ${userMeal}`);
 
       const khoroch = Number((userMeal * mealCharge).toFixed(2));
       const balanceWithoutMasi = Number((totalAmount - khoroch).toFixed(2));
