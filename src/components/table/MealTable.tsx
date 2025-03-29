@@ -30,7 +30,7 @@ import {
   Moon,
   Edit,
   Filter,
-  Download,
+  // Download,
   ChevronDown
 } from 'lucide-react';
 import { useRouter } from "next/navigation";
@@ -162,34 +162,34 @@ export default function MealTable({ data, currMonth }: MealTableProps) {
   };
 
   // Export to CSV function
-  const exportToCSV = () => {
-    const headers = ["Name", ...dates.map(d => formatDate(d).dayOfMonth + " " + formatDate(d).month), "Extra", "Total"];
+  // const exportToCSV = () => {
+  //   const headers = ["Name", ...dates.map(d => formatDate(d).dayOfMonth + " " + formatDate(d).month), "Extra", "Total"];
     
-    let csvContent = headers.join(",") + "\n";
+  //   let csvContent = headers.join(",") + "\n";
     
-    mealSheet.forEach(user => {
-      const row = [
-        user.userName,
-        ...dates.map(date => {
-          const entry = user.details.find(detail => detail.date === date);
-          return entry ? entry.sessions.length : 0;
-        }),
-        user.extra,
-        user.details.reduce((sum, detail) => sum + detail.sessions.length, 0) + user.extra
-      ];
+  //   mealSheet.forEach(user => {
+  //     const row = [
+  //       user.userName,
+  //       ...dates.map(date => {
+  //         const entry = user.details.find(detail => detail.date === date);
+  //         return entry ? entry.sessions.length : 0;
+  //       }),
+  //       user.extra,
+  //       user.details.reduce((sum, detail) => sum + detail.sessions.length, 0) + user.extra
+  //     ];
       
-      csvContent += row.join(",") + "\n";
-    });
+  //     csvContent += row.join(",") + "\n";
+  //   });
     
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `meal_records_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  //   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  //   const url = URL.createObjectURL(blob);
+  //   const link = document.createElement("a");
+  //   link.setAttribute("href", url);
+  //   link.setAttribute("download", `meal_records_${new Date().toISOString().split('T')[0]}.csv`);
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  // };
 
   if (loading) {
     return (
@@ -239,7 +239,7 @@ export default function MealTable({ data, currMonth }: MealTableProps) {
               </TooltipProvider>
             )}
             
-            <TooltipProvider>
+            {/* <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button 
@@ -255,7 +255,7 @@ export default function MealTable({ data, currMonth }: MealTableProps) {
                   <p>Export as CSV</p>
                 </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
+            </TooltipProvider> */}
           </div>
         </div>
       </CardHeader>

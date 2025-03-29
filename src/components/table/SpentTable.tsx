@@ -12,7 +12,7 @@ import {
   FileBarChart2, 
   Search,
   ChevronDown,
-  Download,
+  // Download,
   SlidersHorizontal,
   X
 } from "lucide-react";
@@ -194,42 +194,42 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
     });
   };
 
-  const exportToCSV = () => {
-    // Create CSV content
-    let csvContent = "Name,";
+  // const exportToCSV = () => {
+  //   // Create CSV content
+  //   let csvContent = "Name,";
     
-    // Add date headers
-    dates.forEach(date => {
-      csvContent += new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ",";
-    });
+  //   // Add date headers
+  //   dates.forEach(date => {
+  //     csvContent += new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ",";
+  //   });
     
-    csvContent += "Total\n";
+  //   csvContent += "Total\n";
     
-    // Add user data
-    filteredSheet.forEach(user => {
-      csvContent += (user.userName || "Unknown") + ",";
+  //   // Add user data
+  //   filteredSheet.forEach(user => {
+  //     csvContent += (user.userName || "Unknown") + ",";
       
-      // Add expenses for each date
-      dates.forEach(dateKey => {
-        const expenses = findExpensesForDate(user, dateKey);
-        const totalForDate = expenses.reduce((sum, exp) => sum + exp.money, 0);
-        csvContent += (totalForDate > 0 ? totalForDate.toFixed(2) : "") + ",";
-      });
+  //     // Add expenses for each date
+  //     dates.forEach(dateKey => {
+  //       const expenses = findExpensesForDate(user, dateKey);
+  //       const totalForDate = expenses.reduce((sum, exp) => sum + exp.money, 0);
+  //       csvContent += (totalForDate > 0 ? totalForDate.toFixed(2) : "") + ",";
+  //     });
       
-      // Add total
-      csvContent += user.totalMoney.toFixed(2) + "\n";
-    });
+  //     // Add total
+  //     csvContent += user.totalMoney.toFixed(2) + "\n";
+  //   });
     
-    // Create and download the file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "expense_records.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  //   // Create and download the file
+  //   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  //   const url = URL.createObjectURL(blob);
+  //   const link = document.createElement("a");
+  //   link.setAttribute("href", url);
+  //   link.setAttribute("download", "expense_records.csv");
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  // };
 
   if (loading) {
     return (
@@ -314,7 +314,7 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
               
-              <Button 
+              {/* <Button 
                 variant="outline" 
                 size="sm"
                 className="bg-slate-800 border-slate-700 h-9"
@@ -322,7 +322,7 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
               >
                 <Download size={14} className="mr-1" />
                 Export
-              </Button>
+              </Button> */}
             </div>
           </div>
         </div>

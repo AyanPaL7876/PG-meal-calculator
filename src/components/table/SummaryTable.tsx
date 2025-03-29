@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, Utensils, Wallet, Receipt, Coins, Search, Download } from 'lucide-react';
+import { Calculator, Utensils, Wallet, Receipt, Coins, Search } from 'lucide-react';
 import CardLoading from "./CardLoading";
 import { Input } from "@/components/ui/input";
 
@@ -81,34 +81,34 @@ export default function SummaryTable({ data }: SummaryTableProps) {
     }
   }, [searchQuery, summaries]);
 
-  const exportToCSV = () => {
-    if (filteredSummaries.length === 0) return;
+  // const exportToCSV = () => {
+  //   if (filteredSummaries.length === 0) return;
     
-    const headers = ["Name", "Total Meals", "Total Spent", "Total Expense", "Balance", "Balance (After Masi)"];
-    const csvData = filteredSummaries.map(user => [
-      user.name,
-      user.userTotalMeal,
-      user.userTotalSpent.toFixed(2),
-      user.userTotalExpense.toFixed(2),
-      user.balance.toFixed(2),
-      user.balanceWithAnti.toFixed(2)
-    ]);
+  //   const headers = ["Name", "Total Meals", "Total Spent", "Total Expense", "Balance", "Balance (After Masi)"];
+  //   const csvData = filteredSummaries.map(user => [
+  //     user.name,
+  //     user.userTotalMeal,
+  //     user.userTotalSpent.toFixed(2),
+  //     user.userTotalExpense.toFixed(2),
+  //     user.balance.toFixed(2),
+  //     user.balanceWithAnti.toFixed(2)
+  //   ]);
     
-    const csvContent = [
-      headers.join(","),
-      ...csvData.map(row => row.join(","))
-    ].join("\n");
+  //   const csvContent = [
+  //     headers.join(","),
+  //     ...csvData.map(row => row.join(","))
+  //   ].join("\n");
     
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `monthly-summary-${new Date().toLocaleDateString()}.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  //   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  //   const link = document.createElement("a");
+  //   const url = URL.createObjectURL(blob);
+  //   link.setAttribute("href", url);
+  //   link.setAttribute("download", `monthly-summary-${new Date().toLocaleDateString()}.csv`);
+  //   link.style.visibility = "hidden";
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  // };
 
   if (loading) {
     return (
@@ -134,13 +134,13 @@ export default function SummaryTable({ data }: SummaryTableProps) {
                 className="pl-10 bg-slate-800 border-slate-700 text-white focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64"
               />
             </div>
-            <button
+            {/* <button
               onClick={exportToCSV}
               className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
             >
               <Download size={16} />
               Export
-            </button>
+            </button> */}
           </div>
         </div>
       </CardHeader>
