@@ -12,8 +12,6 @@ import { usePg } from "@/context/PgContext";
 import { getMealSheet, markMeal, removeMealMark } from "@/services/mealService";
 import { MealSheetEntry } from "@/types/pg";
 import { createOrUpdateSummary } from "@/services/summaryServices";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { 
   Coffee, 
@@ -32,7 +30,7 @@ import {
 interface MealSession {
   name: string;
   selected: boolean;
-  icon: ReactNode; // Changed from JSX.Element to ReactNode
+  icon: ReactNode;
 }
 
 const MealUpdatePopup = () => {
@@ -49,7 +47,6 @@ const MealUpdatePopup = () => {
     { name: "Lunch", selected: false, icon: <Utensils className="h-5 w-5 mr-2" /> },
     { name: "Dinner", selected: false, icon: <Moon className="h-5 w-5 mr-2" /> }
   ]);
-  const [calendarOpen, setCalendarOpen] = useState<boolean>(false);
   
   // Fetch user's meal data for the selected date
   const fetchUserMealData = useCallback(async () => {
@@ -163,12 +160,9 @@ const MealUpdatePopup = () => {
     return foundUser ? foundUser.name : "Unknown User";
   }, [selectedUser, users]);
 
-  // Handle date change from calendar
-  const handleDateChange = (selectedDate: Date | undefined) => {
-    if (selectedDate) {
-      setDate(selectedDate.toISOString().split("T")[0]);
-      setCalendarOpen(false);
-    }
+  // Handle date input change
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDate(e.target.value);
   };
 
   // Access control
@@ -195,7 +189,7 @@ const MealUpdatePopup = () => {
                 <SelectTrigger className="w-full md:w-[220px] pl-10 bg-slate-700 border-slate-600 text-white">
                   <SelectValue placeholder="Select user" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-700 border-slate-600 text-white">
+                <SelectContent className="bg-slate-700 border-slate-600 text-white h-52">
                   {users.map(u => (
                     <SelectItem key={u.uid} value={u.uid} className="hover:bg-slate-600">
                       {u.name}
@@ -205,28 +199,19 @@ const MealUpdatePopup = () => {
               </Select>
             </div>
 
-            {/* Calendar Date Picker */}
+            {/* Normal Date Input */}
             <div className="relative w-full md:w-auto">
-              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="w-full md:w-[200px] justify-start text-left font-normal bg-slate-700 text-white border-slate-600 hover:bg-slate-600"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(new Date(date), "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-700">
-                  <Calendar
-                    mode="single"
-                    selected={date ? new Date(date) : undefined}
-                    onSelect={handleDateChange}
-                    initialFocus
-                    className="bg-slate-800 text-white"
-                  />
-                </PopoverContent>
-              </Popover>
+              <div className="flex items-center">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">
+                  <CalendarIcon className="h-4 w-4" />
+                </div>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={handleDateChange}
+                  className="w-full md:w-[220px] pl-10 h-10 rounded-md bg-slate-700 border-slate-600 text-white focus:ring-blue-500 focus:border-blue-500 outline-none"
+                />
+              </div>
             </div>
 
             <div className="flex gap-2 w-full md:w-auto">
