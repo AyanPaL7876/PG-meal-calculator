@@ -3,7 +3,19 @@
 import { useEffect, useState } from "react";
 import { deleteSpentDetails } from "@/services/spentService";
 import { toast } from "react-hot-toast";
-import { Trash2, Receipt, User, Calendar, DollarSign, FileBarChart2 } from "lucide-react";
+import { 
+  Trash2, 
+  Receipt, 
+  User, 
+  Calendar, 
+  DollarSign, 
+  FileBarChart2, 
+  Search,
+  ChevronDown,
+  Download,
+  SlidersHorizontal,
+  X
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -18,6 +30,7 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
+  CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,6 +44,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { spent } from "@/types/pg";
 import { useAuth } from "@/context/AuthContext";
@@ -42,10 +62,13 @@ interface SpentTableProps {
 
 export default function SpentTable({ data, currMonth }: SpentTableProps) {
   const [spentSheet, setSpentSheet] = useState<spent[]>([]);
+  const [filteredSheet, setFilteredSheet] = useState<spent[]>([]);
   const [dates, setDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState<{ userId: string; date: string } | null>(null);
   const [totalSpent, setTotalSpent] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterBy, setFilterBy] = useState<"all" | "highToLow" | "lowToHigh">("all");
   const { user } = useAuth();
 
   useEffect(() => {
@@ -54,6 +77,7 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
       try {
         if (data) {
           setSpentSheet(data);
+          setFilteredSheet(data);
           
           // Group dates by day, regardless of time
           const uniqueDatesMap = new Map();
@@ -87,6 +111,29 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
     fetchSpentData();
   }, [data]);
 
+  // Apply search and filters
+  useEffect(() => {
+    if (!spentSheet.length) return;
+    
+    let filtered = [...spentSheet];
+    
+    // Apply search
+    if (searchTerm) {
+      filtered = filtered.filter(user => 
+        user.userName?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Apply sorting
+    if (filterBy === "highToLow") {
+      filtered.sort((a, b) => b.totalMoney - a.totalMoney);
+    } else if (filterBy === "lowToHigh") {
+      filtered.sort((a, b) => a.totalMoney - b.totalMoney);
+    }
+    
+    setFilteredSheet(filtered);
+  }, [searchTerm, filterBy, spentSheet]);
+
   const handleDelete = async () => {
     if (!deleteConfirm) return;
 
@@ -108,7 +155,7 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
             };
           }
           return user;
-        });
+        }).filter(user => user.details.length > 0);
         
         setSpentSheet(updatedSpentSheet);
         
@@ -147,154 +194,283 @@ export default function SpentTable({ data, currMonth }: SpentTableProps) {
     });
   };
 
+  const exportToCSV = () => {
+    // Create CSV content
+    let csvContent = "Name,";
+    
+    // Add date headers
+    dates.forEach(date => {
+      csvContent += new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ",";
+    });
+    
+    csvContent += "Total\n";
+    
+    // Add user data
+    filteredSheet.forEach(user => {
+      csvContent += (user.userName || "Unknown") + ",";
+      
+      // Add expenses for each date
+      dates.forEach(dateKey => {
+        const expenses = findExpensesForDate(user, dateKey);
+        const totalForDate = expenses.reduce((sum, exp) => sum + exp.money, 0);
+        csvContent += (totalForDate > 0 ? totalForDate.toFixed(2) : "") + ",";
+      });
+      
+      // Add total
+      csvContent += user.totalMoney.toFixed(2) + "\n";
+    });
+    
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "expense_records.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (loading) {
     return (
       <Card className="bg-slate-900 text-white">
-        <CardContent className="flex justify-center items-center h-32">
-          <Skeleton className="w-full h-12 bg-slate-700" />
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">Spent Records</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Skeleton className="h-24 bg-slate-800" />
+            <Skeleton className="h-24 bg-slate-800" />
+            <Skeleton className="h-24 bg-slate-800" />
+          </div>
+          <Skeleton className="h-64 bg-slate-800" />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="max-w-7xl w-full mx-auto bg-slate-900 text-white p-2">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-2xl font-bold text-white flex items-center gap-2">
-          <Receipt size={24} />
-          Spent Records
-        </CardTitle>
+    <Card className="max-w-7xl w-full mx-auto bg-slate-900 text-white border-slate-700">
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <div>
+            <CardTitle className="text-xl font-bold mb-1">
+              <span className="flex items-center gap-2">
+                <Receipt size={20} />
+                Spent Records
+              </span>
+            </CardTitle>
+            <CardDescription className="text-slate-400">
+              {currMonth ? "Current month expenses" : "Previous expense history"}
+            </CardDescription>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-400" />
+              <Input
+                type="text"
+                placeholder="Search by name"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8 pr-8 h-9 bg-slate-800 border-slate-700 text-white"
+              />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1 h-7 w-7 text-slate-400 hover:text-white"
+                  onClick={() => setSearchTerm("")}
+                >
+                  <X size={14} />
+                </Button>
+              )}
+            </div>
+            
+            <div className="flex gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="bg-slate-800 border-slate-700 h-9"
+                  >
+                    <SlidersHorizontal size={14} className="mr-1" />
+                    <span>{filterBy === "all" ? "Sort" : 
+                           filterBy === "highToLow" ? "Highest First" : "Lowest First"}</span>
+                    <ChevronDown size={14} className="ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-slate-800 border-slate-700 text-white">
+                  <DropdownMenuItem onClick={() => setFilterBy("all")}>
+                    Default Order
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterBy("highToLow")}>
+                    Highest to Lowest
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterBy("lowToHigh")}>
+                    Lowest to Highest
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="bg-slate-800 border-slate-700 h-9"
+                onClick={exportToCSV}
+              >
+                <Download size={14} className="mr-1" />
+                Export
+              </Button>
+            </div>
+          </div>
+        </div>
       </CardHeader>
 
-      <CardContent className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
-          <div className="bg-blue-800 p-3 flex items-center gap-2">
-            <User size={20} className="text-white" />
-            <span className="font-medium text-white">Total Members</span>
-          </div>
-          <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">{spentSheet.length}</span>
-          </div>
-        </div>
-        
-        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
-          <div className="bg-purple-800 p-3 flex items-center gap-2">
-            <Calendar size={20} className="text-white" />
-            <span className="font-medium text-white">Total Expense Entries</span>
-          </div>
-          <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">
-              {spentSheet.reduce((acc, user) => acc + user.details.length, 0)}
-            </span>
-          </div>
-        </div>
-        
-        <div className="bg-slate-800 rounded-lg shadow-md overflow-hidden">
-          <div className="bg-green-800 p-3 flex items-center gap-2">
-            <DollarSign size={20} className="text-white" />
-            <span className="font-medium text-white">Total Spent</span>
-          </div>
-          <div className="p-4 text-center">
-            <span className="text-2xl font-bold text-white">₹{totalSpent.toFixed(2)}</span>
-          </div>
-        </div>
-      </CardContent>
-      
       <CardContent>
-      {spentSheet.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
-            <p>No Spent data found.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-white">
+          <Card className="bg-slate-800 border-slate-700">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-center text-white">
+                <div className="flex items-center gap-2">
+                  <User size={18} className="text-blue-400" />
+                  <span className="font-medium ">Members</span>
+                </div>
+                <span className="text-2xl font-bold">{spentSheet.length}</span>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-slate-800 border-slate-700 text-white">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Calendar size={18} className="text-purple-400" />
+                  <span className="font-medium">Entries</span>
+                </div>
+                <span className="text-2xl font-bold">
+                  {spentSheet.reduce((acc, user) => acc + user.details.length, 0)}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-slate-800 border-slate-700 text-white">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <DollarSign size={18} className="text-green-400" />
+                  <span className="font-medium">Total Spent</span>
+                </div>
+                <span className="text-2xl font-bold">₹{totalSpent.toFixed(2)}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {filteredSheet.length === 0 ? (
+          <div className="text-center py-10 bg-slate-800 rounded-lg">
+            <FileBarChart2 size={40} className="mx-auto text-slate-600 mb-2" />
+            <p className="text-slate-400">No expense data found</p>
+            {searchTerm && (
+              <p className="text-slate-500 text-sm mt-1">Try adjusting your search term</p>
+            )}
           </div>
         ) : (
-        <div className="overflow-x-auto overflow-y-auto max-h-[70vh] rounded-lg border border-slate-700">
-          <Table>
-            <TableHeader className="bg-slate-800">
-              <TableRow>
-                <TableHead className="font-semibold text-white sticky left-0 bg-slate-800 z-10">
-                  <div className="flex items-center gap-2">
-                    <User size={16} />
-                    <span>Name</span>
-                  </div>
-                </TableHead>
-                {dates.map((date) => (
-                  <TableHead key={date} className="text-center font-semibold text-white">
-                    <div className="flex flex-col items-center justify-center">
-                      <Calendar size={14} className="mb-1" />
-                      {new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </div>
-                  </TableHead>
-                ))}
-                <TableHead className="text-center font-semibold text-white sticky right-0 bg-slate-800 z-10">
-                  <div className="flex items-center justify-center gap-1">
-                    <FileBarChart2 size={16} />
-                    <span>Total</span>
-                  </div>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
+          <div className="border border-slate-700 rounded-lg overflow-hidden">
+            <div className="overflow-x-auto overflow-y-auto max-h-[70vh]">
+              <Table>
+                <TableHeader className="bg-slate-800 sticky top-0 z-10">
+                  <TableRow>
+                    <TableHead className="font-medium text-white sticky left-0 bg-slate-800 z-20 w-32">
+                      <div className="flex items-center gap-2">
+                        <User size={14} />
+                        <span>Name</span>
+                      </div>
+                    </TableHead>
+                    {dates.map((date) => (
+                      <TableHead key={date} className="text-center font-medium text-white">
+                        <div className="flex flex-col items-center">
+                          <span>{new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                        </div>
+                      </TableHead>
+                    ))}
+                    <TableHead className="text-center font-medium text-white sticky right-0 bg-slate-800 z-20 w-28">
+                      <div className="flex items-center justify-center gap-1">
+                        <FileBarChart2 size={14} />
+                        <span>Total</span>
+                      </div>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
 
-            <TableBody>
-              {spentSheet.map((u) => (
-                <TableRow key={u.userId} className="border-slate-700 hover:bg-slate-800">
-                  <TableCell className="font-medium text-white sticky left-0 bg-slate-900 z-10">
-                    {u.userName ?? "Unknown User"}
-                  </TableCell>
-                  
-                  {dates.map((dateKey) => {
-                    const expenses = findExpensesForDate(u, dateKey);
-                    const totalForDate = expenses.reduce((sum, exp) => sum + exp.money, 0);
-                    
-                    return (
-                      <TableCell key={dateKey} className="text-center p-1">
-                        {expenses.length > 0 && (
-                          <div className="flex flex-row items-center justify-center gap-1 rounded-lg">
-                            <Badge variant="secondary" className="bg-green-700 text-white font-medium">
-                              ₹{totalForDate.toFixed(2)}
-                            </Badge>
-                            
-                            {user?.role === "admin" && currMonth && expenses.map((expense, idx) => (
-                              <Button
-                                key={idx}
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 mt-1 text-red-400 hover:text-red-500 hover:bg-slate-700"
-                                onClick={() =>
-                                  setDeleteConfirm({ userId: u.userId, date: expense.date })
-                                }
-                              >
-                                <Trash2 size={14} />
-                              </Button>
-                            ))}
-                          </div>
-                        )}
+                <TableBody>
+                  {filteredSheet.map((u) => (
+                    <TableRow key={u.userId} className="border-slate-700 hover:bg-slate-800">
+                      <TableCell className="font-medium text-white sticky left-0 bg-slate-900 z-10">
+                        {u.userName ?? "Unknown User"}
                       </TableCell>
-                    );
-                  })}
-                  
-                  <TableCell className="text-center font-bold sticky right-0 bg-slate-900 z-10">
-                    <Badge className="bg-blue-700 text-white px-3 py-1">
-                      ₹{u.totalMoney.toFixed(2)}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                      
+                      {dates.map((dateKey) => {
+                        const expenses = findExpensesForDate(u, dateKey);
+                        const totalForDate = expenses.reduce((sum, exp) => sum + exp.money, 0);
+                        
+                        return (
+                          <TableCell key={dateKey} className="text-center p-1">
+                            {expenses.length > 0 && (
+                              <div className="flex flex-row items-center justify-center gap-1">
+                                <Badge 
+                                  variant="secondary" 
+                                  className="bg-slate-700 text-white"
+                                >
+                                  ₹{totalForDate.toFixed(2)}
+                                </Badge>
+                                
+                                {user?.role === "admin" && currMonth && expenses.map((expense, idx) => (
+                                  <Button
+                                    key={idx}
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 mt-1 text-red-400 hover:text-red-300 hover:bg-red-900/30"
+                                    onClick={() =>
+                                      setDeleteConfirm({ userId: u.userId, date: expense.date })
+                                    }
+                                  >
+                                    <Trash2 size={14} />
+                                  </Button>
+                                ))}
+                              </div>
+                            )}
+                          </TableCell>
+                        );
+                      })}
+                      
+                      <TableCell className="text-center font-bold sticky right-0 bg-slate-900 z-10">
+                        <Badge className="bg-blue-900 text-white">
+                          ₹{u.totalMoney.toFixed(2)}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         )}
       </CardContent>
       
-      <CardFooter className="text-sm text-center text-slate-400 italic border-t border-slate-700 pt-4 mt-2">
-        {user?.role === "admin" ? 
-          "* Click the delete button under each expense to remove it" : 
-          "* Contact an admin to make corrections to expense records"}
-      </CardFooter>
+      {user?.role === "admin" && (
+        <CardFooter className="text-sm text-center text-slate-400 border-t border-slate-700 pt-4">
+          Click the delete button beside each expense to remove it
+        </CardFooter>
+      )}
 
       {deleteConfirm && (
         <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
-          <AlertDialogContent className="bg-slate-800 border border-slate-700 text-white">
+          <AlertDialogContent className="bg-slate-800 border-slate-700 text-white">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-white">Delete Expense</AlertDialogTitle>
+              <AlertDialogTitle>Delete Expense</AlertDialogTitle>
               <AlertDialogDescription className="text-slate-300">
                 Are you sure you want to delete this expense? This action cannot be undone.
               </AlertDialogDescription>

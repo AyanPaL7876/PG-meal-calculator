@@ -52,6 +52,8 @@ const TakeAttendance = () => {
       }
     }
     await createOrUpdateSummary(pgId as string);
+    toast.success("Meal added successfully")
+    setMealMarking(false);
 }
 
   if (loading || user?.role !== "admin") return <LoadingScreen message="Loading data..." />;

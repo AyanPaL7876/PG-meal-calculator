@@ -68,8 +68,6 @@ export const markMeal = async (pgId: string, userId: string, date: string, newSe
     await updateDoc(pgRef, { "currMonth.mealSheet": mealSheet, "currMonth.totalMeal": pg.currMonth.totalMeal });
     await updateDoc(userRef, { mealCount: user.mealCount });
 
-    // await createOrUpdateSummary(pgId);
-
     console.log("✅ Meal marked successfully!");
     return { success: true, message: "Meal marked successfully!" };
   } catch (error) {
@@ -179,8 +177,6 @@ export const removeMealMark = async (pgId: string, userId: string, date: string,
 
     await updateDoc(pgRef, { "currMonth.mealSheet": mealSheet, "currMonth.totalMeal": pg.currMonth.totalMeal });
     await updateDoc(userRef, { mealCount: user.mealCount });
-
-    // await createOrUpdateSummary(pgId);
 
     console.log("✅ Meal mark removed successfully!");
     return { success: true, message: "Meal mark removed successfully!" };
